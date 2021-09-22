@@ -8,12 +8,11 @@ Yuriko Harigaya, Nancy R. Zhang, Yuchao Jiang
 Yuriko Harigaya <harigaya@email.unc.edu>
 
 ## Description
-TRIPOD is a statistical framework for detecting three-way regulatory relationships between a cis-regulatory region, a transcription factor, and a target gene using single-cell multiomic data.
-The main functionality of this package is as follows.
+TRIPOD is a statistical framework for detecting three-way regulatory relationships between a cis-regulatory region, a transcription factor, and a target gene using single-cell multiomic data. The main functionality of this package is as follows.
 
 * Infers trio regulatory relationships using robust nonparametric models
 * Builds RNA prediction models from ATAC-seq data
-* Identifies cell-types in which a trio regulatory relationship is active by estimating the influence of a data point in linear regression.
+* Identifies cell-types in which a trio regulatory relationship is active by estimating the influence of a data point in linear regression
 
 ## Installation
 ```r
