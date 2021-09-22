@@ -23,9 +23,9 @@ install_github("yharigaya/TRIPOD")
 ```
 
 ## Vignettes & manuscript code
-* [TRIPOD vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD.html)
 * [Preprocessing vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/preprocessing.html)
+* [TRIPOD vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD.html)
 * [Manuscript code](https://github.com/yharigaya/TRIPOD_manuscript)
 
 ## Manuscript
-Yuriko Harigaya, Zhaojun Zhang, Chi-Yun Wu, Kevin Z. Lin, Hongpan Zhang, Chongzhi Zang, Nancy R. Zhang, Yuchao Jiang. "Nonparametric Interrogation of Transcriptional Regulation in Single-Cell RNA and Chromatin Accessibility Data."
+Yuriko Harigaya, Zhaojun Zhang, Chi-Yun Wu, Kevin Z. Lin, Hongpan Zhang, Chongzhi Zang, Nancy R. Zhang, Yuchao Jiang. Nonparametric Interrogation of Transcriptional Regulation in Single-Cell RNA and Chromatin Accessibility Data. ***bioRxiv***, 2021.
