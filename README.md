@@ -17,7 +17,7 @@ TRIPOD is a statistical framework for detecting three-way regulatory relationshi
 ## Installation
 ```r
 install.packages("devtools")
-devtools::install_github("yharigaya/TRIPOD")
+devtools::install_github("yharigaya/TRIPOD/package")
 ```
 
 ## Vignettes & manuscript code
