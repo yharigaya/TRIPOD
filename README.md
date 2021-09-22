@@ -25,12 +25,12 @@ devtools::install_github("yharigaya/TRIPOD/package")
 * [TRIPOD vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD.html)
 
 
-#  Manuscript code
+##  Manuscript code
 
 * [10X Genomics PBMC](https://github.com/yharigaya/TRIPOD/tree/main/scripts/10x_pbmc/)
 * [10X Genomics mouse embryonic brain](https://github.com/yharigaya/TRIPOD/tree/main/scripts/10x_e18/)
 * [SHARE-seq mouse skin](https://github.com/yharigaya/TRIPOD/tree/main/scripts/share_seq_skin/)
 * [SNARE-seq adult mouse brain](https://github.com/yharigaya/TRIPOD/tree/main/scripts/snare_seq_mbrain/)
 
-## Manuscript
+## Reference
 Yuriko Harigaya, Zhaojun Zhang, Chi-Yun Wu, Kevin Z. Lin, Hongpan Zhang, Chongzhi Zang, Nancy R. Zhang, Yuchao Jiang. Nonparametric Interrogation of Transcriptional Regulation in Single-Cell RNA and Chromatin Accessibility Data. ***bioRxiv***, 2021.
