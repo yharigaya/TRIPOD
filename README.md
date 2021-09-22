@@ -18,8 +18,7 @@ The main functionality of this package is as follows.
 ## Installation
 ```r
 install.packages("devtools")
-library(devtools)
-install_github("yharigaya/TRIPOD")
+devtools::install_github("yharigaya/TRIPOD")
 ```
 
 ## Vignettes & manuscript code
