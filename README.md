@@ -1,5 +1,5 @@
 # TRIPOD
-Detecting transcriptional regulatory relationships in single-cell RNA and chromatin accessibility moltiomic data
+Detecting transcriptional regulatory relationships in single-cell RNA and chromatin accessibility multiomic data
 
 ## Author
 Yuriko Harigaya, Nancy R. Zhang, Yuchao Jiang
