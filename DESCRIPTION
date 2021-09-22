@@ -24,3 +24,19 @@ Suggests:
     rmarkdown,
     knitr
 VignetteBuilder: knitr
+Imports: 
+    GenomicRanges,
+    BiocParallel,
+    ggplot2,
+    graphics,
+    grDevices,
+    Matrix,
+    methods,
+    stats,
+    Seurat,
+    Signac,
+    nbpMatching,
+    glmnet,
+    olsrr,
+    dendextend,
+    FNN
