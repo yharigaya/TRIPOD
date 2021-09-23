@@ -33,101 +33,105 @@ peakxmotif <- readRDS(path); rm(path)
 
 file <- "metacell.rna.rds"
 path <- file.path(dir.out, file)
-metacell.rna <- readRDS(path); rm(path)
+wnn.rna <- readRDS(path); rm(path)
 
 file <- "metacell.peak.rds"
 path <- file.path(dir.out, file)
-metacell.peak <- readRDS(path); rm(path)
+wnn.peak <- readRDS(path); rm(path)
 
 file <- "hvg.rds"
 path <- file.path(dir.out, file)
 hvg <- readRDS(path); rm(path)
 
-file <- "metacell.color.map.rds"
-path <- file.path(dir.out, file)
-metacell.color.map <- readRDS(path); rm(path)
+file <- "metacell.celltype.rds"
+path <- file.path(dir.pre, file)
+wnn.celltype <- readRDS(path); rm(path)
+
+file <- "metacell.celltype.col.rds"
+path <- file.path(dir.pre, file)
+wnn.celltype.col <- readRDS(path); rm(path)
 
 # get a list of target genes of interest
+# process the data
 tfs.neuro <- c("Pax6", "Neurog2", "Eomes", "Neurod1", "Tbr1")
 tfs.glio <- c("Olig2", "Sox10", "Nkx2-2", "Sox9", "Nfia", "Ascl1")
 genes <- unique(c(hvg[1:1000], tfs.neuro, tfs.glio))
-file <- "genes.rds"
-path <- file.path(dir.out, file)
-saveRDS(genes, path) ; rm(path)
-
 ext.upstream <- ext.downstream <- 2e5
 
+# get XY matrices
+system.time(
 xymats.list <- bplapply(
 	genes,
 	getXYMatrices,
   ext.upstream = ext.upstream,
   transcripts.gr = transcripts.gr,
-  peaks.gr = peaks.gr,
-  metacell.rna = metacell.rna,
-  metacell.peak = metacell.peak,
+  peak.gr = peak.gr,
+  wnn.rna = wnn.rna,
+  wnn.peak = wnn.peak,
   peakxmotif = peakxmotif,
   motifxTF = motifxTF,
-  metacell.celltype = metacell.color.map$celltype,
-  metacell.celltype.col = metacell.color.map$color
+  wnn.celltype = wnn.celltype,
+  wnn.celltype.col = wnn.celltype.col
+)
 )
 names(xymats.list) <- genes
 file <- "xymats.list.rds"
-path <- file.path(dir.out, file)
+path <- file.path(dir.model, file)
 saveRDS(xymats.list, path); rm(path)
 
-# fit marginal models
-xymats.m.list <- bplapply(
+# fit model 1a (marginal)
+system.time(
+xymats1.list <- bplapply(
 	xymats.list,
   fitModel,
-	model.name = "marginal"
+	modelName = "1a"
 )
-names(xymats.m.list) <- genes
-file <- "xymats.m.list.rds"
-path <- file.path(dir.out, file)
-saveRDS(xymats.m.list, path); rm(path)
+)
+names(xymats1.list) <- genes
+file <- "xymats1.list.rds"
+path <- file.path(dir.model, file)
+saveRDS(xymats1.list, path); rm(path)
 
-# fit conditional models
-xymats.c.list <- bplapply(
+# fit model 4a (interaction)
+system.time(
+xymats4.list <- bplapply(
 	xymats.list,
   fitModel,
-	model.name = "conditional"
+	modelName = "4a"
 )
-names(xymats.c.list) <- genes
-file <- "xymats.c.list.rds"
-path <- file.path(dir.out, file)
-saveRDS(xymats.c.list, path); rm(path)
-
-# fit interaction models
-xymats.i.list <- bplapply(
-	xymats.list,
-  fitModel,
-	model.name = "interaction"
 )
-names(xymats.i.list) <- genes
-file <- "xymats.i.list.rds"
-path <- file.path(dir.out, file)
-saveRDS(xymats.i.list, path); rm(path)
+names(xymats4.list) <- genes
+file <- "xymats4.list.rds"
+path <- file.path(dir.model, file)
+saveRDS(xymats4.list, path); rm(path)
 
-# run TRIPOD matching Xt
-xymats.tripod.Xt.list <- bplapply(
+# fit model 5a (TRIPOD)
+system.time(
+xymats5X.list <- bplapply(
 	xymats.list,
 	fitModel,
-	model.name = "TRIPOD",
-	match.by = "Xt"
+	modelName = "5a",
+	match.by = "Xt",
+  do.capValues = FALSE,
+  VERBOSE = FALSE
 )
-names(xymats.tripod.Xt.list) <- genes
-file <- "xymats.tripod.Xt.list.rds"
-path <- file.path(dir.out, file)
-saveRDS(xymats.tripod.Xt.list, path); rm(path)
+)
+names(xymats5X.list) <- genes
+file <- "xymats5X.list.rds"
+path <- file.path(dir.model, file)
+saveRDS(xymats5X.list, path); rm(path)
 
-# run TRIPOD matching Yj
-xymats.tripod.Yj.list <- bplapply(
+system.time(
+xymats5Y.list <- bplapply(
 	xymats.list,
 	fitModel,
-	model.name = "TRIPOD",
-	match.by = "Yj"
+	modelName = "5a",
+	match.by = "Yj",
+  do.capValues = FALSE,
+  VERBOSE = FALSE
 )
-names(xymats.tripod.Yj.list) <- genes
-file <- "xymats.tripod.Yj.list.rds"
-path <- file.path(dir.out, file)
-saveRDS(xymats.tripod.Yj.list, path); rm(path)
+)
+names(xymats5Y.list) <- genes
+file <- "xymats5Y.list.rds"
+path <- file.path(dir.model, file)
+saveRDS(xymats5Y.list, path); rm(path)
