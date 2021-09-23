@@ -10,190 +10,111 @@ tmp <- lapply(scripts, source)
 rm(tmp)
 
 # read in data
-file <- "xymats.m.list.rds"
+file <- "xymats.list.rds"
 path <- file.path(dir.out, file)
-xymats.m.list <- readRDS(path); rm(path)
+xymats.list <- readRDS(path); rm(path)
 
-file <- "xymats.i.list.rds"
+file <- "xymats1.list.rds"
 path <- file.path(dir.out, file)
-xymats.i.list <- readRDS(path); rm(path)
+xymats1.list <- readRDS(path); rm(path)
 
-file <- "xymats.tripod.Xt.list.rds"
+file <- "xymats4.list.rds"
 path <- file.path(dir.out, file)
-xymats.tripod.Xt.list <- readRDS(path); rm(path)
+xymats4.list <- readRDS(path); rm(path)
 
-file <- "xymats.tripod.Yj.list.rds"
+file <- "xymats5X.list.rds"
 path <- file.path(dir.out, file)
-xymats.tripod.Yj.list <- readRDS(path); rm(path)
+xymats5X.list <- readRDS(path); rm(path)
+
+file <- "xymats5Y.list.rds"
+path <- file.path(dir.out, file)
+xymats5Y.list <- readRDS(path); rm(path)
 
 # set FDR < 0.01
 fdr.thresh <- 0.01
 
-file <- "xymats.list.rds"
-path <- file.path(dir.out, file)
-xymats.list <- readRDS(path); rm(path)
-xymats <- xymats$Sox10
+# set the sign coefficient
+sign <- "positive"; sign.str <- "pos"
+# sign <- "negative"; sign.str <- "neg"
 
-# set the sign of coefficients
-sign <- "positive"
-sign.str <- "pos"
-
-# get a data frame of hits from the marginal model
-xymats.alpha.m.pos.df <- getPeakGenePairs(
-	xymats.list = xymats.m.list,
+# get peak-gene pairs with significantly positive alpha coefficients
+# from model 1 (marginal Yg ~ Xt)
+xymats1.alpha.pos.df <- getPeakGenePairs(
+	xymats.list = xymats.list.list$xymats1,
 	fdr.thresh = fdr.thresh,
 	sign = sign,
-  model.name = "marginal")
-file <- paste0("xymats_alpha_m_", sign.str, "_", fdr.thresh, ".csv")
+  model.name = "1a")
+file <- paste0("xymats1.alpha.", sign.str, ".", fdr.thresh, ".csv")
 path <- file.path(dir.out, file)
-write.csv(xymats.alpha.m.pos.df, path); rm(path)
+write.table(xymats1.alpha.pos.df, path, sep = ",", quote = FALSE)
 
-xymats.beta.m.pos.df <- getTFGenePairs(
-	xymats.list = xymats.m.list,
+# get TF-gene pairs with significantly positive beta coefficients
+# from model 1 (marginal Yg ~ Yj)
+xymats1.beta.pos.df <- getTFGenePairs(
+	xymats.list = xymats.list.list$xymats1,
 	fdr.thresh = fdr.thresh,
 	sign = sign,
-  model.name = "marginal")
-file <- paste0("xymats_beta_m_", sign.str, "_", fdr.thresh, ".csv")
+  model.name = "1a")
+file <- paste0("xymats1.beta.", sign.str, ".", fdr.thresh, ".csv")
 path <- file.path(dir.out, file)
-write.csv(xymats.beta.m.pos.df, path); rm(path)
+write.table(xymats1.beta.pos.df, path, sep = ",", quote = FALSE)
 
-# get a data fame of hits from the interaction model
-xymats.i.pos.df <- getTrios(
-	xymats.list = xymats.i.list,
-	fdr.thresh = fdr.thresh,
+# get trios with significantly positive gamma coefficients 
+# from model 4 (interaction)
+xymats4.gamma.pos.df <- getTrios(
+	xymats.list = xymats.list.list$xymats4, 
+	fdr.thresh = fdr.thresh, 
 	sign = sign,
-  model.name = "interaction"
-)
-file <- paste0("xymats_i_", sign.str, "_", fdr.thresh, ".csv")
+  model.name = "4a")
+file <- paste0("xymats4.gamma.", sign.str, ".", fdr.thresh, ".csv")
 path <- file.path(dir.out, file)
-write.csv(xymats.i.pos.df, path); rm(path)
+write.table(xymats4.gamma.pos.df, path, sep = ",", quote = FALSE)
 
-# get a data fame of hits from TRIPOD level 1 matching Xt
-xymats.tX1.pos.df <- getTrios(
-	xymats.list = xymats.tripod.Xt.list,
-	fdr.thresh = fdr.thresh,
+# get trios with significantly positive beta coefficients
+# from model 5X level 1 (TRIPOD level 1 matching Xt)
+xymats5X.beta.pos.df <- getTrios(
+	xymats.list = xymats.list.list$xymats5X, 
+	fdr.thresh = fdr.thresh, 
 	sign = sign,
-  model.name = "TRIPOD",
-	level = 1
-)
-file <- paste0("xymats_tX1_", sign.str, "_", fdr.thresh, ".csv")
+  model.name = "5a",
+	level = 1)
+file <- paste0("xymats5X.beta.", sign.str, ".", fdr.thresh, ".csv")
 path <- file.path(dir.out, file)
-write.csv(xymats.tX1.pos.df, path); rm(path)
+write.table(xymats5X.beta.pos.df, path, sep = ",", quote = FALSE)
 
-# get a data fame of hits from TRIPOD level 2 matching Xt
-xymats.tX2.pos.df <- getTrios(
-	xymats.list = xymats.tripod.Xt.list,
-	fdr.thresh = fdr.thresh,
+# get trios with significantly positive gamma coefficients
+# from model 5X level 2 (TRIPOD level 2 matching Xt)
+xymats5X.gamma.pos.df <- getTrios(
+	xymats.list = xymats.list.list$xymats5X, 
+	fdr.thresh = fdr.thresh, 
 	sign = sign,
-  model.name = "TRIPOD",
-	level = 2
-)
-file <- paste0("xymats_tX2_", sign.str, "_", fdr.thresh, ".csv")
+  model.name = "5a",
+	level = 2)
+file <- paste0("xymats5X.gamma.", sign.str, ".", fdr.thresh, ".csv")
 path <- file.path(dir.out, file)
-write.csv(xymats.tX2.pos.df, path); rm(path)
+write.table(xymats5X.gamma.pos.df, path, sep = ",", quote = FALSE)
 
-# get a data fame of hits from TRIPOD level 1 matching Yj
-xymats.tY1.pos.df <- getTrios(
-	xymats.list = xymats.tripod.Yj.list,
-	fdr.thresh = fdr.thresh,
+# get trios with significantly positive alpha coefficients
+# from model 5Y level 1 (TRIPOD level 1 matching Yj)
+xymats5Y.alpha.pos.df <- getTrios(
+	xymats.list = xymats.list.list$xymats5Y, 
+	fdr.thresh = fdr.thresh, 
 	sign = sign,
-  model.name = "TRIPOD",
-	level = 1
-)
-file <- paste0("xymats_tY1_", sign.str, "_", fdr.thresh, ".csv")
+  model.name = "5a",
+	level = 1)
+file <- paste0("xymats5Y.alpha.", sign.str, ".", fdr.thresh, ".csv")
 path <- file.path(dir.out, file)
-write.csv(xymats.tY1.pos.df, path); rm(path)
+write.table(xymats5Y.alpha.pos.df, path, sep = ",", quote = FALSE)
 
-# get a data fame of hits from TRIPOD level 2 matching Yj
-xymats.tY2.pos.df <- getTrios(
-	xymats.list = xymats.tripod.Yj.list,
-	fdr.thresh = fdr.thresh,
+# get trios with significantly positive gamma coefficients
+# from model 5Y level 2 (TRIPOD level 2 matching Yj)
+xymats5Y.gamma.pos.df <- getTrios(
+	xymats.list = xymats.list.list$xymats5Y, 
+	fdr.thresh = fdr.thresh, 
 	sign = sign,
-  model.name = "TRIPOD",
-	level = 2
-)
-file <- paste0("xymats_tY2_", sign.str, "_", fdr.thresh, ".csv")
+  model.name = "5a",
+	level = 2)
+file <- paste0("xymats5Y.gamma.", sign.str, ".", fdr.thresh, ".csv")
 path <- file.path(dir.out, file)
-write.csv(xymats.tY2.pos.df, path); rm(path)
+write.table(xymats5Y.gamma.pos.df, path, sep = ",", quote = FALSE)
 
-# set the sign of coefficients
-sign <- "negative"
-sign.str <- "neg"
-
-# get a data frame of hits from the marginal model
-xymats.alpha.m.neg.df <- getPeakGenePairs(
-	xymats.list = xymats.m.list,
-	fdr.thresh = fdr.thresh,
-	sign = sign,
-  model.name = "marginal")
-file <- paste0("xymats_alpha_m_", sign.str, "_", fdr.thresh, ".csv")
-path <- file.path(dir.out, file)
-write.csv(xymats.alpha.m.neg.df, path); rm(path)
-
-xymats.beta.m.neg.df <- getTFGenePairs(
-	xymats.list = xymats.m.list,
-	fdr.thresh = fdr.thresh,
-	sign = sign,
-  model.name = "marginal")
-file <- paste0("xymats_beta_m_", sign.str, "_", fdr.thresh, ".csv")
-path <- file.path(dir.out, file)
-write.csv(xymats.beta.m.neg.df, path); rm(path)
-
-# get a data fame of hits from the interaction model
-xymats.i.neg.df <- getTrios(
-	xymats.list = xymats.i.list,
-	fdr.thresh = fdr.thresh,
-	sign = sign,
-  model.name = "interaction"
-)
-file <- paste0("xymats_i_", sign.str, "_", fdr.thresh, ".csv")
-path <- file.path(dir.out, file)
-write.csv(xymats.i.neg.df, path); rm(path)
-
-# get a data fame of hits from TRIPOD level 1 matching Xt
-xymats.tX1.neg.df <- getTrios(
-	xymats.list = xymats.tripod.Xt.list,
-	fdr.thresh = fdr.thresh,
-	sign = sign,
-  model.name = "TRIPOD",
-	level = 1
-)
-file <- paste0("xymats_tX1_", sign.str, "_", fdr.thresh, ".csv")
-path <- file.path(dir.out, file)
-write.csv(xymats.tX1.neg.df, path); rm(path)
-
-# get a data fame of hits from TRIPOD level 2 matching Xt
-xymats.tX2.neg.df <- getTrios(
-	xymats.list = xymats.tripod.Xt.list,
-	fdr.thresh = fdr.thresh,
-	sign = sign,
-  model.name = "TRIPOD",
-	level = 2
-)
-file <- paste0("xymats_tX2_", sign.str, "_", fdr.thresh, ".csv")
-path <- file.path(dir.out, file)
-write.csv(xymats.tX2.neg.df, path); rm(path)
-
-# get a data fame of hits from TRIPOD level 1 matching Yj
-xymats.tY1.neg.df <- getTrios(
-	xymats.list = xymats.tripod.Yj.list,
-	fdr.thresh = fdr.thresh,
-	sign = sign,
-  model.name = "TRIPOD",
-	level = 1
-)
-file <- paste0("xymats_tY1_", sign.str, "_", fdr.thresh, ".csv")
-path <- file.path(dir.out, file)
-write.csv(xymats.tY1.neg.df, path); rm(path)
-
-# get a data fame of hits from TRIPOD level 2 matching Yj
-xymats.tY2.neg.df <- getTrios(
-	xymats.list = xymats.tripod.Yj.list,
-	fdr.thresh = fdr.thresh,
-	sign = sign,
-  model.name = "TRIPOD",
-	level = 2
-)
-file <- paste0("xymats_tY2_", sign.str, "_", fdr.thresh, ".csv")
-path <- file.path(dir.out, file)
-write.csv(xymats.tY2.neg.df, path); rm(path)
