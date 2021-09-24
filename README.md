@@ -34,4 +34,4 @@ devtools::install_github("yharigaya/TRIPOD/package")
 * [SNARE-seq adult mouse brain](https://github.com/yharigaya/TRIPOD/tree/main/scripts/snare_seq_mbrain/)
 
 ## Reference
-Yuriko Harigaya, Zhaojun Zhang, Hongpan Zhang, Chongzhi Zang, Nancy R Zhang, Yuchao Jiang. Nonparametric Interrogation of Transcriptional Regulation in Single-Cell RNA and Chromatin Accessibility Multiomic Data. ***bioRxiv***, 2021.
+Yuriko Harigaya, Zhaojun Zhang, Hongpan Zhang, Chongzhi Zang, Nancy R Zhang, Yuchao Jiang. Nonparametric Interrogation of Transcriptional Regulation in Single-Cell RNA and Chromatin Accessibility Multiomic Data. ***bioRxiv***, 2021. ([link](https://www.biorxiv.org/content/10.1101/2021.09.22.461437v1))
