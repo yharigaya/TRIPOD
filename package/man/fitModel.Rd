@@ -97,7 +97,7 @@ the product of Xt and Yj.}
 \item{match.by}{the matched variable. This applieds to "TRIPOD" only.}
 }
 \description{
-This function takes a list returned by {\code{\link{getXYMatrices}}}
+fitModel() takes a list returned by {\code{\link{getXYMatrices}}}
 as input, performs model fitting for a given target gene,
 and returns a list object containing matrices of coefficients and p-values.
 The (t, j) elements of the matrices

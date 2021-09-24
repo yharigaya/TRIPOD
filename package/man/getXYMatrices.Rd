@@ -42,7 +42,7 @@ Rows and columns represent cell clusters and ATAC peak positions, respectively.}
 
 \item{metacell.celltype}{a character vector specifying cell types of the metacells.}
 
-\item{metacell.celltype.col}{a character vector specifying colors of the metacells.
+\item{metacell.celltype.col}{a character vector specifying colors of the metacells
 based on the cell types.}
 }
 \value{

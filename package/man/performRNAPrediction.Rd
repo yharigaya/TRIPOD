@@ -27,7 +27,22 @@ Set this to 0 if capping is unnecessary.}
 \item{seed}{an integer.}
 }
 \value{
-a list
+A list containing some of the following elements.
+\item{gene.name}{a character string.}
+\item{Yg}{ a vector containig capped RNA expression of the gene across metacells.}
+\item{Xt}{a matrix containig capped chromatin accessibility of the ATAC peaks.}
+\item{Yj}{a matrix containing capped TF RNA expression.
+Note that TFs that do no have motifs in the region
+around TSS are excluded.}
+\item{peakxmotif.g}{a gene-specific binary matrix containing indicators of
+whether ATAC peaks contains motifs.
+rows and columns represent peaks and motifs, respectively.}
+\item{nonzero.peakxmotif.g}{a matrix with two columns.
+The first and second columns contain row and column numbers
+in the peakmotif.g matrix where the entry is non-zero.}
+\item{Y.pred}{A numerical vector containing predicted values of Yg.}
+\item{cor}{A numerical scalar representing Pearson correlation between
+the predicted and observed Yg values}
 }
 \description{
 This function takes a list returned by {\code{\link{getXYMatrices}}}

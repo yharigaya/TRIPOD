@@ -23,7 +23,7 @@ this can be set to fitted values, "Yg".}
 
 \item{threshold}{a value of nominal P value at which a horizontal line is drawn}
 
-\item{metacell.celltype.col}{a character vector specifying colors of the metacells.
+\item{metacell.celltype.col}{a character vector specifying colors of the metacells
 based on the cell types.}
 
 \item{ordered.celltype}{a chracter vector containing cell types. This

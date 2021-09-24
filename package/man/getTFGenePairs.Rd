@@ -10,7 +10,7 @@ getTFGenePairs(xymats.list, fdr.thresh, sign, model.name)
 \item{xymats.list}{a list of lists (xymats objects) returned
 by {\code{\link{fitModel}}}.}
 
-\item{fdr.thresh}{a numerical scalar values setting a FDR threshold.}
+\item{fdr.thresh}{a numerical scalar setting a FDR threshold.}
 
 \item{sign}{a character string specifying the sign.
 This should be either "positive" or "negative".}
@@ -18,7 +18,15 @@ This should be either "positive" or "negative".}
 \item{model.name}{a character string specifying the model.}
 }
 \value{
-a data frame
+A data frame with 8 columns containing the following:
+\item{gene}{a character string containing the name of the target gene.}
+\item{TF_num}{an integer representing a TF index.
+The mapping between the indices and the TF names are the same as that
+in the xymats object.}
+\item{TF}{a chracter string representing the name of the peak.}
+\item{coef}{a numerical scalar representing the value of the coefficient}
+\item{pval}{a numerical scalar representing the nominal p value}
+\item{adj}{a numerical scalar representing the BH-adjusted p value}
 }
 \description{
 This is a wrapper function for {\code{\link{getTFGenePairsForSingleGene}}}.

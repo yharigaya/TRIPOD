@@ -50,7 +50,24 @@ scatter plots of pairs of metacells using {\code{\link{plotGenePeakTFScatter}}}.
 \item{verbose}{a logical indicating whether to print progress in "TRIPOD".}
 }
 \value{
-a list
+A list containing the following elements.
+\item{matched.cells}{a data frame with columns containing metacell indices
+in matche pairs, differences in the outcome Yg,
+differences in the varied predictor V,
+and the average of the matched predictor U}
+\item{match.by}{a character string specifying the matched variable.}
+\item{coef.level1}{a numerical scalar representing an estimate of coefficient
+from TRIPOD level 1 test.}
+\item{pval.level1}{a numerical scalar representing a p-value associated with
+coef.level1}
+\item{coef.level2}{a numerical scalar representing an estimate of coefficient
+from TRIPOD level 2 test.}
+\item{pval.level2}{a numerical scalar representing a p-value associated with
+coef.level2}
+\item{matched.col1}{a character vector specifying colors of the first metacells
+in the pairs based on the cell types.}
+\item{matched.col2}{a character vector specifying colors of the second metacells
+in the pairs based on the cell types.}
 }
 \description{
 This function takes gene expression and chromatin accessibility vectors for

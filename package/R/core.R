@@ -17,7 +17,7 @@
 #' @param peakxmotif a binary matrix containing indicators as to whether ATAC peaks contain motifs.
 #' @param motifxTF a matrix containing names of motifs and TFs.
 #' @param metacell.celltype a character vector specifying cell types of the metacells.
-#' @param metacell.celltype.col a character vector specifying colors of the metacells.
+#' @param metacell.celltype.col a character vector specifying colors of the metacells
 #' based on the cell types.
 #'
 #' @return A list with elements:
@@ -95,7 +95,7 @@ getXYMatrices <- function(gene.name, ext.upstream, ext.downstream = NULL,
 
 #' Perform model fitting for a given target gene
 #'
-#' This function takes a list returned by {\code{\link{getXYMatrices}}}
+#' fitModel() takes a list returned by {\code{\link{getXYMatrices}}}
 #' as input, performs model fitting for a given target gene,
 #' and returns a list object containing matrices of coefficients and p-values.
 #' The (t, j) elements of the matrices
@@ -401,7 +401,25 @@ fitModel <- function(xymats, model.name, match.by = NULL, log = NULL,
 #' @param Z a matrix containing covariates.
 #' @inheritParams fitModel
 #'
-#' @return a list
+#' @return A list containing the following elements.
+#' \item{matched.cells}{a data frame with columns containing metacell indices
+#' in matche pairs, differences in the outcome Yg,
+#' differences in the varied predictor V,
+#' and the average of the matched predictor U}
+#' \item{match.by}{a character string specifying the matched variable.}
+#' \item{coef.level1}{a numerical scalar representing an estimate of coefficient
+#' from TRIPOD level 1 test.}
+#' \item{pval.level1}{a numerical scalar representing a p-value associated with
+#' coef.level1}
+#' \item{coef.level2}{a numerical scalar representing an estimate of coefficient
+#' from TRIPOD level 2 test.}
+#' \item{pval.level2}{a numerical scalar representing a p-value associated with
+#' coef.level2}
+#' \item{matched.col1}{a character vector specifying colors of the first metacells
+#' in the pairs based on the cell types.}
+#' \item{matched.col2}{a character vector specifying colors of the second metacells
+#' in the pairs based on the cell types.}
+#'
 #' @import nbpMatching
 #' @importFrom stats IQR cor cor.test lm
 #' @export
@@ -525,7 +543,7 @@ performMatchedTest <- function(Yg, Xt, Yj, Z = NULL, match.by,
 #' positive or negative coefficients for a given target gene.
 #'
 #' @param xymats a list returned by {\code{\link{fitModel}}}.
-#' @param fdr.thresh a numerical scalar values setting a FDR threshold.
+#' @param fdr.thresh a numerical scalar setting a FDR threshold.
 #' @param sign a character string specifying the sign.
 #' This should be either "positive" or "negative".
 #' @param coef.name a character string specifying the name of the coefficient.
@@ -533,7 +551,7 @@ performMatchedTest <- function(Yg, Xt, Yj, Z = NULL, match.by,
 #' @param pval.name a character string specifying the name of the element in
 #' the xymats object that stores the P value.
 #'
-#' @return a data frame with x columns. The columns contain the following.
+#' @return A data frame with 8 columns containing the following:
 #' \item{gene}{a character string containing the name of the target gene.}
 #' \item{peak_num}{an integer representing a peak index.
 #' The mapping between the indices and the peak names are the same as that
@@ -544,8 +562,8 @@ performMatchedTest <- function(Yg, Xt, Yj, Z = NULL, match.by,
 #' \item{peak}{a chracter string representingthe name of the peak.}
 #' \item{TF}{a chracter string representing the name of the peak.}
 #' \item{coef}{a numerical scalar representing the value of the coefficient}
-#' \item{pval}{a numerical scalar representing the nominal P value}
-#' \item{adj}{a numerical scalar representing the BH-adjusted P value}
+#' \item{pval}{a numerical scalar representing the nominal p value}
+#' \item{adj}{a numerical scalar representing the BH-adjusted p value}
 #' @export
 getTriosForSingleGene <- function(
 #	gene.name,
@@ -594,7 +612,20 @@ getTriosForSingleGene <- function(
 #' @param level an integer specifying whether level 1 or 2 test is used.
 #' @inheritParams getTriosForSingleGene
 #'
-#' @return a data frame
+#' @return A data frame with 8 columns containing the following:
+#' \item{gene}{a character string containing the name of the target gene.}
+#' \item{peak_num}{an integer representing a peak index.
+#' The mapping between the indices and the peak names are the same as that
+#' in the xymats object.}
+#' \item{TF_num}{an integer representing a TF index.
+#' The mapping between the indices and the TF names are the same as that
+#' in the xymats object.}
+#' \item{peak}{a chracter string representingthe name of the peak.}
+#' \item{TF}{a chracter string representing the name of the peak.}
+#' \item{coef}{a numerical scalar representing the value of the coefficient}
+#' \item{pval}{a numerical scalar representing the nominal p value}
+#' \item{adj}{a numerical scalar representing the BH-adjusted p value}
+#'
 #' @import BiocParallel
 #' @export
 getTrios <- function(
@@ -671,7 +702,16 @@ getTrios <- function(
 #'
 #' @inheritParams getTriosForSingleGene
 #'
-#' @return a data frame
+#' @return A data frame with 8 columns containing the following:
+#' \item{gene}{a character string containing the name of the target gene.}
+#' \item{peak_num}{an integer representing a peak index.
+#' The mapping between the indices and the peak names are the same as that
+#' in the xymats object.}
+#' \item{peak}{a chracter string representingthe name of the peak.}
+#' \item{coef}{a numerical scalar representing the value of the coefficient}
+#' \item{pval}{a numerical scalar representing the nominal p value}
+#' \item{adj}{a numerical scalar representing the BH-adjusted p value}
+#'
 #' @export
 getPeakGenePairsForSingleGene <- function(
 	xymats,
@@ -707,7 +747,16 @@ getPeakGenePairsForSingleGene <- function(
 #'
 #' @inheritParams getTrios
 #'
-#' @return a data frame
+#' @return A data frame with 8 columns containing the following:
+#' \item{gene}{a character string containing the name of the target gene.}
+#' \item{peak_num}{an integer representing a peak index.
+#' The mapping between the indices and the peak names are the same as that
+#' in the xymats object.}
+#' \item{peak}{a chracter string representingthe name of the peak.}
+#' \item{coef}{a numerical scalar representing the value of the coefficient}
+#' \item{pval}{a numerical scalar representing the nominal p value}
+#' \item{adj}{a numerical scalar representing the BH-adjusted p value}
+#'
 #' @import BiocParallel
 #' @export
 getPeakGenePairs <- function(
@@ -743,7 +792,16 @@ getPeakGenePairs <- function(
 #'
 #' @inheritParams getTriosForSingleGene
 #'
-#' @return a data frame
+#' @return A data frame with 8 columns containing the following:
+#' \item{gene}{a character string containing the name of the target gene.}
+#' \item{TF_num}{an integer representing a TF index.
+#' The mapping between the indices and the TF names are the same as that
+#' in the xymats object.}
+#' \item{TF}{a chracter string representing the name of the peak.}
+#' \item{coef}{a numerical scalar representing the value of the coefficient}
+#' \item{pval}{a numerical scalar representing the nominal p value}
+#' \item{adj}{a numerical scalar representing the BH-adjusted p value}
+#'
 #' @export
 getTFGenePairsForSingleGene <- function(
   xymats,
@@ -780,7 +838,16 @@ getTFGenePairsForSingleGene <- function(
 #'
 #' @inheritParams getTrios
 #'
-#' @return a data frame
+#' @return A data frame with 8 columns containing the following:
+#' \item{gene}{a character string containing the name of the target gene.}
+#' \item{TF_num}{an integer representing a TF index.
+#' The mapping between the indices and the TF names are the same as that
+#' in the xymats object.}
+#' \item{TF}{a chracter string representing the name of the peak.}
+#' \item{coef}{a numerical scalar representing the value of the coefficient}
+#' \item{pval}{a numerical scalar representing the nominal p value}
+#' \item{adj}{a numerical scalar representing the BH-adjusted p value}
+#'
 #' @import BiocParallel
 #' @export
 getTFGenePairs <- function(
@@ -822,7 +889,22 @@ getTFGenePairs <- function(
 #' Set this to 0 if capping is unnecessary.
 #' @param seed an integer.
 #'
-#' @return a list
+#' @return A list containing some of the following elements.
+#' \item{gene.name}{a character string.}
+#' \item{Yg}{ a vector containig capped RNA expression of the gene across metacells.}
+#' \item{Xt}{a matrix containig capped chromatin accessibility of the ATAC peaks.}
+#' \item{Yj}{a matrix containing capped TF RNA expression.
+#' Note that TFs that do no have motifs in the region
+#' around TSS are excluded.}
+#' \item{peakxmotif.g}{a gene-specific binary matrix containing indicators of
+#' whether ATAC peaks contains motifs.
+#' rows and columns represent peaks and motifs, respectively.}
+#' \item{nonzero.peakxmotif.g}{a matrix with two columns.
+#' The first and second columns contain row and column numbers
+#' in the peakmotif.g matrix where the entry is non-zero.}
+#' \item{Y.pred}{A numerical vector containing predicted values of Yg.}
+#' \item{cor}{A numerical scalar representing Pearson correlation between
+#' the predicted and observed Yg values}
 #'
 #' @import GenomicRanges Matrix glmnet
 #'

@@ -24,7 +24,7 @@ This must be one of "Xt", "Yj", or "Xt:Yj".
 If {\code{\link{deleteNeighbor}}} was run with an argument "two.sided",
 this can be set to fitted values, "Yg".}
 
-\item{metacell.celltype.col}{a character vector specifying colors of the metacells.
+\item{metacell.celltype.col}{a character vector specifying colors of the metacells
 based on the cell types.}
 
 \item{threshold}{a value of nominal P value at which a horizontal line is drawn}

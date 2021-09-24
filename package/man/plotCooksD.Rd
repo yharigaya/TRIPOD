@@ -9,7 +9,7 @@ plotCooksD(d.list, metacell.celltype.col, ...)
 \arguments{
 \item{d.list}{a list returned by {\code{\link{getCooksD}}}}
 
-\item{metacell.celltype.col}{a character vector specifying colors of the metacells.
+\item{metacell.celltype.col}{a character vector specifying colors of the metacells
 based on the cell types.}
 
 \item{...}{further arguments to be passed.}
