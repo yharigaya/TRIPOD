@@ -6,6 +6,7 @@ output:
     html_document:
         highlight: pygments
         toc: true
+bibliography: TRIPOD.bib
 vignette: >
   %\VignetteIndexEntry{preprocessing}
   %\VignetteEngine{knitr::rmarkdown}
@@ -148,9 +149,9 @@ e18[["ATAC"]] <- chrom.assay
 Although TRIPOD does not strictly require cell type information, it can substantially enrich 
 the analysis. In our analysis, we use cell type annotation data obtained by
 transferring cell type labels from an independent scRNA-seq reference using
-SAVERCAT (ref). We load the `label.severcat` data, 
+SAVERCAT [@Huang2020]. We load the `label.severcat` data, 
 which is included in the TRIPOD package, and add it to the Seurat object.
-Alternatively, the `label.seurat` data, which was obtained using Seurat V3 (ref),
+Alternatively, the `label.seurat` data, which was obtained using Seurat V3 [@Stuart2019],
 can be used. 
 
 ```{r eval = TRUE, message = FALSE, warning = FALSE}
@@ -329,7 +330,7 @@ In some cases, the TF motif information may not fully incorporate the existing
 knowledge in the literature.
 For example, in our analysis of the mouse embryonic brain data,
 we replace the motif for the Olig2 TF with `CAGCTG`, which has been validated 
-by previous genetic and biochemical studies (ref).
+by previous genetic and biochemical studies [@Kuespert2011].
 
 For this purpose, we first construct a PFM of the Olig2 motif.
 
@@ -518,7 +519,7 @@ p1 + p2 + p3 & NoLegend() & theme(plot.title = element_text(hjust = 0.5))
 To alleviate the issue of sparsity of the single cell data, we next partition the cells
 into clusters, which we call metacells. The models in the TRIPOD package are
 based on metacells, not single cells. Cells can be clustered based on either the ATAC
-or RNA modality. It is also possible to use the weighted nearest neighbor (WNN) method (ref).
+or RNA modality. It is also possible to use the weighted nearest neighbor (WNN) method [@Hao2021].
 For the mouse embyonic barin data, we use the RNA modality (see above).
 
 To obtain a set of metacells suited for model fitting, it is necessary to select
@@ -679,3 +680,5 @@ hvg <- VariableFeatures(e18)
 ```{r}
 sessionInfo()
 ```
+
+# References

@@ -9,9 +9,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Yuriko Harigaya, Nancy Zhang, Yuchao Jiang" />
+<meta name="author" content="Yuriko Harigaya, Nancy R. Zhang, Yuchao Jiang" />
 
-<meta name="date" content="2021-09-23" />
+<meta name="date" content="2021-09-24" />
 
 <title>Data preprocessing for TRIPOD</title>
 
@@ -140,6 +140,28 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 
+<style type="text/css">
+/* for pandoc --citeproc since 2.11 */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
 
 
 
@@ -248,8 +270,8 @@ pre code {
 
 
 <h1 class="title toc-ignore">Data preprocessing for TRIPOD</h1>
-<h4 class="author">Yuriko Harigaya, Nancy Zhang, Yuchao Jiang</h4>
-<h4 class="date">2021-09-23</h4>
+<h4 class="author">Yuriko Harigaya, Nancy R. Zhang, Yuchao Jiang</h4>
+<h4 class="date">2021-09-24</h4>
 
 </div>
 
@@ -272,6 +294,7 @@ pre code {
 <li><a href="#getting-a-list-of-target-genes">3.11 Getting a list of target genes</a></li>
 </ul></li>
 <li><a href="#session-information">Session information</a></li>
+<li><a href="#references">References</a></li>
 </ul>
 </div>
 
@@ -336,7 +359,7 @@ pre code {
 </div>
 <div id="adding-cell-type-annotations-optional" class="section level2">
 <h2>3.2 Adding cell type annotations (optional)</h2>
-<p>Although TRIPOD does not strictly require cell type information, it can substantially enrich the analysis. In our analysis, we use cell type annotation data obtained by transferring cell type labels from an independent scRNA-seq reference using SAVERCAT (ref). We load the <code>label.severcat</code> data, which is included in the TRIPOD package, and add it to the Seurat object. Alternatively, the <code>label.seurat</code> data, which was obtained using Seurat V3 (ref), can be used.</p>
+<p>Although TRIPOD does not strictly require cell type information, it can substantially enrich the analysis. In our analysis, we use cell type annotation data obtained by transferring cell type labels from an independent scRNA-seq reference using SAVERCAT <span class="citation">(Huang, Zhang, and Zhang 2020)</span>. We load the <code>label.severcat</code> data, which is included in the TRIPOD package, and add it to the Seurat object. Alternatively, the <code>label.seurat</code> data, which was obtained using Seurat V3 <span class="citation">(Stuart et al. 2019)</span>, can be used.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(label.savercat)</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>e18<span class="sc">$</span>label.savercat <span class="ot">&lt;-</span> label.savercat</span></code></pre></div>
 </div>
@@ -411,7 +434,7 @@ pre code {
 <span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                     3                                     2 </span></span>
 <span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Mixed region and neurotransmitter            Mixed region glutamatergic </span></span>
 <span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                     2                                     1</span></span></code></pre></div>
-<p>Based on the above information as well as existing biological knowledge, we focus on the seven cell types, “Cajal-Retzius”, “Cortical or hippocampal glutamatergic”, “Forebrain GABAergic”, “Glioblast”, Neuroblast, “Oligodendrocyte”, and “Radial glia”.</p>
+<p>Based on the above information as well as existing biological knowledge, we focus on the seven cell types, “Cajal-Retzius,” “Cortical or hippocampal glutamatergic,” “Forebrain GABAergic,” “Glioblast,” Neuroblast, “Oligodendrocyte,” and “Radial glia.”</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># filter cells based on cell labels</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>celltypes.to.keep <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Cajal-Retzius&quot;</span>, </span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Cortical or hippocampal glutamatergic&quot;</span>,</span>
@@ -421,10 +444,10 @@ pre code {
 <span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>e18 <span class="ot">&lt;-</span> <span class="fu">subset</span>(e18, <span class="at">cells =</span> keep)</span>
 <span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>e18<span class="sc">$</span>celltype <span class="ot">&lt;-</span> e18<span class="sc">$</span>label.savercat</span>
 <span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>e18<span class="sc">$</span>label.savercat <span class="ot">&lt;-</span> <span class="cn">NULL</span></span></code></pre></div>
-<p>For simplicity, we rename “Cortical or hippocampal glutamatergic” and “Forebrain GABAergic” as “Glutamatergic” and “GABAergic”, respectively.</p>
+<p>For simplicity, we rename “Cortical or hippocampal glutamatergic” and “Forebrain GABAergic” as “Glutamatergic” and “GABAergic,” respectively.</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>e18<span class="sc">$</span>celltype[e18<span class="sc">$</span>celltype <span class="sc">==</span> <span class="st">&quot;Cortical or hippocampal glutamatergic&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;Glutamatergic&quot;</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>e18<span class="sc">$</span>celltype[e18<span class="sc">$</span>celltype <span class="sc">==</span> <span class="st">&quot;Forebrain GABAergic&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;GABAergic&quot;</span></span></code></pre></div>
-<p>We convert the cell type data to factors and set the factor levels based on their developmental order (“Radial glia”, “Neuroblast”, “GABAergic”, “Glutamatergic”, “Glioblast”, “Oligodendrocyte”, and “Cajal-Retzius”).</p>
+<p>We convert the cell type data to factors and set the factor levels based on their developmental order (“Radial glia,” “Neuroblast,” “GABAergic,” “Glutamatergic,” “Glioblast,” “Oligodendrocyte,” and “Cajal-Retzius”).</p>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>levels.celltype  <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Radial glia&quot;</span>, <span class="st">&quot;Neuroblast&quot;</span>,</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;GABAergic&quot;</span>, <span class="st">&quot;Glutamatergic&quot;</span>,</span>
@@ -465,7 +488,7 @@ pre code {
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>pfm.set <span class="ot">&lt;-</span> <span class="fu">getMatrixSet</span>(</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> JASPAR2020,</span>
 <span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">opts =</span> <span class="fu">list</span>(<span class="at">species =</span> <span class="dv">9606</span>, <span class="at">all_versions =</span> <span class="cn">FALSE</span>)) <span class="co"># human</span></span></code></pre></div>
-<p>In some cases, the TF motif information may not fully incorporate the existing knowledge in the literature. For example, in our analysis of the mouse embryonic brain data, we replace the motif for the Olig2 TF with <code>CAGCTG</code>, which has been validated by previous genetic and biochemical studies (ref).</p>
+<p>In some cases, the TF motif information may not fully incorporate the existing knowledge in the literature. For example, in our analysis of the mouse embryonic brain data, we replace the motif for the Olig2 TF with <code>CAGCTG</code>, which has been validated by previous genetic and biochemical studies <span class="citation">(Küspert et al. 2011)</span>.</p>
 <p>For this purpose, we first construct a PFM of the Olig2 motif.</p>
 <div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>pfm.olig2 <span class="ot">&lt;-</span> <span class="fu">PFMatrix</span>(</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">ID =</span> <span class="st">&quot;PFM.Olig2&quot;</span>,</span>
@@ -609,7 +632,7 @@ pre code {
 </div>
 <div id="partitioning-single-cells-into-metacells" class="section level2">
 <h2>3.9 Partitioning single cells into metacells</h2>
-<p>To alleviate the issue of sparsity of the single cell data, we next partition the cells into clusters, which we call metacells. The models in the TRIPOD package are based on metacells, not single cells. Cells can be clustered based on either the ATAC or RNA modality. It is also possible to use the weighted nearest neighbor (WNN) method (ref). For the mouse embyonic barin data, we use the RNA modality (see above).</p>
+<p>To alleviate the issue of sparsity of the single cell data, we next partition the cells into clusters, which we call metacells. The models in the TRIPOD package are based on metacells, not single cells. Cells can be clustered based on either the ATAC or RNA modality. It is also possible to use the weighted nearest neighbor (WNN) method <span class="citation">(Hao et al. 2021)</span>. For the mouse embyonic barin data, we use the RNA modality (see above).</p>
 <p>To obtain a set of metacells suited for model fitting, it is necessary to select an optimal resolution of clustering to ensure the following.</p>
 <ul>
 <li>a sufficient number of cells per metacell for resolving the sparsity issue</li>
@@ -844,6 +867,23 @@ pre code {
 <span id="cb50-103"><a href="#cb50-103" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [211] scattermore_0.7             bit_4.0.4                   jpeg_0.1-9                 </span></span>
 <span id="cb50-104"><a href="#cb50-104" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [214] MatrixGenerics_1.4.3        spatstat.data_2.1-0         pkgconfig_2.0.3            </span></span>
 <span id="cb50-105"><a href="#cb50-105" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [217] DirichletMultinomial_1.34.0 knitr_1.34</span></span></code></pre></div>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1 class="unnumbered">References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Hao2021" class="csl-entry">
+Hao, Yuhan, Stephanie Hao, Erica Andersen-Nissen, William M. Mauck, Shiwei Zheng, Andrew Butler, Maddie J. Lee, et al. 2021. <span>“Integrated Analysis of Multimodal Single-Cell Data.”</span> <em>Cell</em> 184 (June): 3573–3587.e29. <a href="https://doi.org/10.1016/j.cell.2021.04.048">https://doi.org/10.1016/j.cell.2021.04.048</a>.
+</div>
+<div id="ref-Huang2020" class="csl-entry">
+Huang, Mo, Zhaojun Zhang, and Nancy R. Zhang. 2020. <span>“Dimension Reduction and Denoising of Single-Cell <span>RNA</span> Sequencing Data in the Presence of Observed Confounding Variables,”</span> August. <a href="https://doi.org/10.1101/2020.08.03.234765">https://doi.org/10.1101/2020.08.03.234765</a>.
+</div>
+<div id="ref-Kuespert2011" class="csl-entry">
+Küspert, Melanie, Alexander Hammer, Michael R. Bösl, and Michael Wegner. 2011. <span>“Olig2 Regulates Sox10 Expression in Oligodendrocyte Precursors Through an Evolutionary Conserved Distal Enhancer.”</span> <em>Nucleic Acids Research</em> 39 (March): 1280–93. <a href="https://doi.org/10.1093/nar/gkq951">https://doi.org/10.1093/nar/gkq951</a>.
+</div>
+<div id="ref-Stuart2019" class="csl-entry">
+Stuart, Tim, Andrew Butler, Paul Hoffman, Christoph Hafemeister, Efthymia Papalexi, William M. Mauck, Yuhan Hao, Marlon Stoeckius, Peter Smibert, and Rahul Satija. 2019. <span>“Comprehensive Integration of Single-Cell Data.”</span> <em>Cell</em> 177 (June): 1888–1902.e21. <a href="https://doi.org/10.1016/j.cell.2019.05.031">https://doi.org/10.1016/j.cell.2019.05.031</a>.
+</div>
+</div>
 </div>
 
 
