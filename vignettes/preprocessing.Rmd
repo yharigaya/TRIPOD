@@ -41,7 +41,7 @@ devtools::install_github("yharigaya/TRIPOD/package")
 ```
 
 ```{r setup, eval = TRUE, message = FALSE}
-library(TRIPODprep)
+library(TRIPOD)
 ```
 
 Additionally, the following packages are required to run this vignette.

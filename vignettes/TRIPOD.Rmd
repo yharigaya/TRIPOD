@@ -125,13 +125,13 @@ The formulation of the models is described in detail in our manuscript.
 
 The TRIPOD package is available from [GitHub](https://github.com/yharigaya/TRIPOD).
 
-```{r install, eval = TRUE, message = FALSE, warning = FALSE}
+```{r install, eval = FALSE, message = FALSE, warning = FALSE}
 if (!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools")
 devtools::install_github("yharigaya/TRIPOD/package")
 ```
 
 ```{r setup, eval = TRUE, message = FALSE}
-library(TRIPODprep)
+library(TRIPOD)
 ```
 
 Additionally, the following packages are required to run this vignette.
