@@ -119,13 +119,13 @@ yields estimates of different sets of coefficients.
 and `xymats$Yj` elements, and the elements are replaced with the capped values.
 That is, the elements differ between the input and output.
 
-The formulation of the models is described in detail in our manuscript.
+The formulation of the models is described in detail in [our manuscript](https://www.biorxiv.org/content/10.1101/2021.09.22.461437v1).
 
 # 4 Required packages
 
 The TRIPOD package is available from [GitHub](https://github.com/yharigaya/TRIPOD).
 
-```{r install, eval = FALSE, message = FALSE, warning = FALSE}
+```{r install, eval = TRUE, message = FALSE, warning = FALSE, results = FALSE}
 if (!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools")
 devtools::install_github("yharigaya/TRIPOD/package")
 ```
@@ -213,7 +213,7 @@ names(xymats.list) <- genes
 We now use the `fitModel()` function to fit models. The table below
 summarizes coefficients estimated in the models and input arguments
 to the functions including `getTrios()`, which generates a data frame of screen hits.
-See our manuscript for details.
+See [our manuscript](https://www.biorxiv.org/content/10.1101/2021.09.22.461437v1) for details.
 
 | Model name     | Formula      | Coefficient name | Input argument    |
 |:---------------|:-------------|:-----------------|:------------------|
@@ -671,7 +671,7 @@ The above result again implies that the regulation may occur in neuroblasts
 and glioblasts. Although the significant results are restricted to leaf nodes
 for this trio from the mouse embryonic btain data, we have observed examples 
 where nodes in branches are consistently significant, particularly in the
-PBMC dataset (see our manuscript).
+PBMC dataset (see [our manuscript](https://www.biorxiv.org/content/10.1101/2021.09.22.461437v1)).
 
 ## 7.5 Visualizing the cell-type specificity of transcriptional regulation
 
