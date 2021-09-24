@@ -1,6 +1,6 @@
 ---
 title: "Data preprocessing for TRIPOD"
-author: "Yuriko Harigaya, Nancy Zhang, Yuchao Jiang"
+author: "Yuriko Harigaya, Nancy R. Zhang, Yuchao Jiang"
 date: "`r format(Sys.Date())`"
 output:
     html_document:
@@ -12,7 +12,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r, include = FALSE, warning = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -21,38 +21,29 @@ knitr::opts_chunk$set(
 
 # 1 Introduction
 
-This is a supplement to the TRIPOD vignette.
+This is a supplement to [the TRIPOD vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD.html).
 Here, we demonstrate data preprocessing required for conducting
 analysis using the TRIPOD package.
-The input is sigle-cell multiomic data, which is publicly available from 
+The input is sigle-cell ATAC/RNA multiomic data, which is publicly available from 
 [10x Genomics](https://support.10xgenomics.com/single-cell-multiome-atac-gex/datasets). 
 The data was generated in 4881 cells of the mouse embryonic brain at day 18 
 and contains ATAC-seq and RNA-seq read counts for 144437 ATAC peaks 
 and 32285 gene regions, respectively.
 
-# 2 Required package(s)
+# 2 Required packages
 
-The TRIPOD package, which is available from (URL), is required to run this vignette.
+The TRIPOD package is available from [GitHub](https://github.com/yharigaya/TRIPOD).
 
-```{r install, eval = FALSE}
-# this does not work yet
-install.package(TRIPODprep) # install_github()
+```{r install, eval = TRUE, message = FALSE, warning = FALSE}
+if (!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools")
+devtools::install_github("yharigaya/TRIPOD/package")
 ```
 
-```{r setup, eval = FALSE}
+```{r setup, eval = TRUE, message = FALSE}
 library(TRIPODprep)
 ```
 
-```{r, eval = TRUE, message = FALSE}
-# tentative setup
-library(devtools)
-library(tidyverse)
-library(fs)
-load_all()
-# install()
-```
-
-Additionally, the following packages are required.
+Additionally, the following packages are required to run this vignette.
 
 ```{r packages, cache = FALSE, message = FALSE}
 library(Seurat)
@@ -75,15 +66,14 @@ library(BSgenome.Mmusculus.UCSC.mm10)
 ## 3.1 Creating a Seurat object
 
 We first create a Seurat object essentially according to the tutorial [here](https://satijalab.org/seurat/articles/weighted_nearest_neighbor_analysis.html). 
-The input data (`e18_mouse_brain_fresh_5k_filtered_feature_bc_matrix.h5` and
-`e18_mouse_brain_fresh_5k_atac_fragments.tsv.gz`) can be can be downloaded 
+The input data (`e18_mouse_brain_fresh_5k_filtered_feature_bc_matrix.h5`, `e18_mouse_brain_fresh_5k_atac_fragments.tsv.gz`, and `e18_mouse_brain_fresh_5k_atac_fragments.tsv.gz.tbi`) can be downloaded 
 from the 10x Genomics website
 [here](https://support.10xgenomics.com/single-cell-multiome-atac-gex/datasets).
 
 ```{r, include = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
-# for testing on my local machine only
+# for testing on a local machine only
 file <- "e18_mouse_brain_fresh_5k_filtered_feature_bc_matrix.h5"
-dir.data <- "~/Dropbox/multiome_shared_snapshots/EmbryonicMouseBrain_10x_multiomics/e18_mouse_brain_fresh"
+dir.data <- "~/Dropbox/TRIPOD/data"
 path <- file.path(dir.data, file)
 ```
 
@@ -130,10 +120,12 @@ genome(annotations) <- "mm10"
 
 In the following code, `"/path/to/your/atac/fragmenets/file"` needs to be replaced with
 the path to `e18_mouse_brain_fresh_5k_atac_fragments.tsv.gz`.
+The index file, `e18_mouse_brain_fresh_5k_atac_fragments.tsv.gz.tbi`, must be
+in the same directory.
 
 ```{r, include = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
 # for testing on my local machine only
-dir.data <- "~/Dropbox/multiome_shared_snapshots/EmbryonicMouseBrain_10x_multiomics/e18_mouse_brain_fresh"
+dir.data <- "~/Dropbox/TRIPOD/data"
 file <- "e18_mouse_brain_fresh_5k_atac_fragments.tsv.gz"
 path <- file.path(dir.data, file)
 ```
@@ -153,19 +145,13 @@ e18[["ATAC"]] <- chrom.assay
 
 ## 3.2 Adding cell type annotations (optional)
 
-Although TRIPOD does not strictly require cell type labels, it can substantially enrich 
+Although TRIPOD does not strictly require cell type information, it can substantially enrich 
 the analysis. In our analysis, we use cell type annotation data obtained by
 transferring cell type labels from an independent scRNA-seq reference using
 SAVERCAT (ref). We load the `label.severcat` data, 
 which is included in the TRIPOD package, and add it to the Seurat object.
 Alternatively, the `label.seurat` data, which was obtained using Seurat V3 (ref),
 can be used. 
-
-```{r, include = FALSE, eval = FALSE, message = FALSE, warning = FALSE}
-# this is no longer needed
-path <- "~/Dropbox/jiang_lab/project_alignment/data/data_011/preprocess_20210623/e18.1.20210623.rds" 
-e18 <- readRDS(path); rm(path)
-```
 
 ```{r eval = TRUE, message = FALSE, warning = FALSE}
 data(label.savercat)
@@ -239,7 +225,7 @@ Cell type labels can be used to filter the single cell data, which can,
 in turn, increase signal-to-noise ratio.
 We note that this procedure is inevitably subjective and that it is advisable
 to experiment with different filtering strategies.
-We illustrate merely an example case below, in which our basic goals
+We merely illustrate an example case below, in which our basic goals
 are as follows.
 
 * keep cells with biologically reasonable cell labels
@@ -392,7 +378,7 @@ using the following code.
 motif.object <- CreateMotifObject(data = motif.matrix, pwm = pfm.set)
 e18 <- SetAssayData(e18, assay = "ATAC", slot = "motifs", 
 	new.data = motif.object)
-e18 <- RunChromVAR( # note that this step can take 30-60 minutes
+e18 <- RunChromVAR(
   object = e18,
   genome = BSgenome.Mmusculus.UCSC.mm10
 )
@@ -404,7 +390,7 @@ We then create objects containing information that is necessary for model fittin
 namely, `transcripts.gr`, `peaks.gr`, `motifxTF`, and `peakxmotif`. 
 See the documentation for more detailed descriptions of these objects.
 
-The `transcripts.gr` object is a GRanges object from the GenomicRanges package
+The `transcripts.gr` object is a GRanges object from [the GenomicRanges package](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
 and contains chromosomal coordinates of annotated protein containing genes.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
@@ -425,7 +411,7 @@ data.
 peaks.gr <- e18@assays$ATAC@ranges
 ```
 
-The `motifxTF` object is a matrix (change to data.frame?) containing mapping
+The `motifxTF` object is a matrix containing mapping
 between TFs and their binding motifs.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
@@ -438,7 +424,6 @@ The `peakxmotif` object is a binary sparse matrix containing indicators
 as to whether a given motif is preset in a given ATAC peak region.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-# peak by motif: overlap of ATAC peaks and motifs (binary)
 peakxmotif <- e18@assays$ATAC@motifs@data 
 peakxmotif[1:5, 1:5]
 dim(peakxmotif)
@@ -447,9 +432,6 @@ dim(peakxmotif)
 We then convert the human gene symbols to mouse counterparts.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-# the mouse has gene symbol as Brca1 v.s. the gene/TF symbol as BRCA1 in human
-# may need to use a more formal method
-# i assume that the results would be very similar or identical
 motifxTF[, 2] <- stringr::str_to_title(tolower(motifxTF[, 2]))
 ```
 
@@ -512,8 +494,8 @@ e18 <- FindMultiModalNeighbors(e18, reduction.list = list("pca", "lsi"),
 	dims.list = list(1:50, 2:50))
 e18 <- RunUMAP(e18, nn.name = "weighted.nn", 
 	reduction.name = "wnn.umap", reduction.key = "wnnUMAP_")
-# e18 <- FindClusters(e18, graph.name = "wsnn", 
-# 	algorithm = 3, verbose = FALSE) # this may not be necessary
+e18 <- FindClusters(e18, graph.name = "wsnn", 
+  algorithm = 3, verbose = FALSE) # this may not be necessary
 ```
 
 The following code visualizes the data on recalculated graphs.
@@ -553,7 +535,6 @@ we first construct a shared nearest neighbor graph.
 # get rna meta-cells by clustering cells on basis of their scRNA-seq profiles
 DefaultAssay(e18) <- "SCT"
 e18 <- FindNeighbors(e18, reduction = "pca", dims = 1:30)
-# e18 <- FindClusters(e18, resolution = 0.8, verbose = FALSE)
 ```
 
 Based on the graph, we then perform clustering at several resolutions.
@@ -632,6 +613,15 @@ metacell.peak <- metacell.peak[!remove, ]
 # remove cells in the removed metacell clusters from the Seurat object
 e18 <- e18[, !(e18$seurat_clusters %in% names.remove)]
 e18$seurat_clusters <- droplevels(e18$seurat_clusters)
+```
+
+It is necessary to save the Seurat object (`e18`) for running [the TRIPOD vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD.html)
+since the object is not included in the TRIPOD package.
+
+```{r, eval = FALSE}
+file <- "e18.rds"
+path <- file.path("path/to/your/dir", file)
+saveRDS(e18, path); rm(path)
 ```
 
 ## 3.10 Assigning cell types and colors for visualization

@@ -8,7 +8,8 @@ Yuriko Harigaya, Nancy R. Zhang, Yuchao Jiang
 Yuriko Harigaya <harigaya@email.unc.edu>
 
 ## Description
-TRIPOD is a statistical framework for detecting three-way regulatory relationships between a cis-regulatory region, a transcription factor, and a target gene using single-cell multiomic data. The main functionality of this package is as follows.
+TRIPOD is a statistical framework for detecting three-way regulatory relationships between a cis-regulatory region, a transcription factor, and a target gene, which we call a "trio,"
+using single-cell ATAC/RNA multiomic data. The main functionality of this package is as follows.
 
 * Infers trio regulatory relationships using robust nonparametric models
 * Builds RNA prediction models from ATAC-seq data
@@ -33,4 +34,4 @@ devtools::install_github("yharigaya/TRIPOD/package")
 * [SNARE-seq adult mouse brain](https://github.com/yharigaya/TRIPOD/tree/main/scripts/snare_seq_mbrain/)
 
 ## Reference
-Yuriko Harigaya, Zhaojun Zhang, Chi-Yun Wu, Kevin Z. Lin, Hongpan Zhang, Chongzhi Zang, Nancy R. Zhang, Yuchao Jiang. Nonparametric Interrogation of Transcriptional Regulation in Single-Cell RNA and Chromatin Accessibility Data. ***bioRxiv***, 2021.
+Yuriko Harigaya, Zhaojun Zhang, Hongpan Zhang, Chongzhi Zang, Nancy R Zhang, Yuchao Jiang. Nonparametric Interrogation of Transcriptional Regulation in Single-Cell RNA and Chromatin Accessibility Multiomic Data. ***bioRxiv***, 2021.
