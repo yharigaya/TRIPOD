@@ -17,9 +17,7 @@ getCooksD(Yg, Xt, Yj, metacell.celltype, ...)
 
 \item{...}{further arguments to be passed.}
 }
-\value{
-a list
-}
 \description{
-This function computes Cook's distance on the linear regression model.
+This function computes Cook's distance on the linear regression model
+and prepares data for Cook's bar plot.
 }

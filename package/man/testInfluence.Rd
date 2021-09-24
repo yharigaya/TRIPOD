@@ -2,7 +2,7 @@
 % Please edit documentation in R/influence.R
 \name{testInfluence}
 \alias{testInfluence}
-\title{Get sampling-based P-values}
+\title{Get sampling-based p-values}
 \usage{
 testInfluence(
   Yg,
@@ -24,7 +24,7 @@ testInfluence(
 \item{Yj}{a numeric vector containing TF expression.}
 
 \item{alternative}{a character string specifying the alternative hypothesis.
-This must be one of "two.sided", "greater", or "less".}
+This must be one of "two.sided", "greater", and "less".}
 
 \item{metacell.rm}{an integer vector containing indices of metacells
 to be removed.}
@@ -38,9 +38,9 @@ to be removed.}
 \item{...}{further arguments passed to {\code{\link{hist}}}.}
 }
 \value{
-a data frame. The rows represent metacells (?).
+A numerical vector containing p-values.
 }
 \description{
-This function computes sampling-based P-values representing influences
+This function computes sampling-based p-values representing influences
 of deleting metacells in a linear regression model.
 }

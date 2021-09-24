@@ -17,9 +17,7 @@ getDFFIT(Yg, Xt, Yj, metacell.celltype, ...)
 
 \item{...}{further arguments to be passed.}
 }
-\value{
-a list
-}
 \description{
-This function computes DFFIT on the linear regression model.
+This function computes DFFIT on the linear regression model
+and prepares data for DFFIT plot.
 }

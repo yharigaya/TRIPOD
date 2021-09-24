@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{plotInfluenceForNeighbor}
 \alias{plotInfluenceForNeighbor}
-\title{Plot sampling-based P values for deleting a group of metacells}
+\title{Plot sampling-based p-values for deleting a group of metacells}
 \usage{
 plotInfluenceForNeighbor(
   delta.coeff.pval,
@@ -16,20 +16,20 @@ plotInfluenceForNeighbor(
 \item{delta.coeff.pval}{a data frame returned by {\code{\link{deleteNeighbor}}}}
 
 \item{coefficient}{a character string specifying the coefficient to be plotted.
-This must be one of "Xt", "Yj", or "Xt:Yj".
+This must be one of "Xt", "Yj", and "Xt:Yj".
 If {\code{\link{deleteNeighbor}}} was run with an argument "two.sided",
 this can be set to fitted values, "Yg".}
 
 \item{metacell.celltype.col}{a character vector specifying colors of the metacells
 based on the cell types.}
 
-\item{threshold}{a value of nominal P value at which a horizontal line is drawn}
+\item{threshold}{a value of nominal p-value at which a horizontal line is drawn.}
 
 \item{...}{further arguments to be passed.}
 }
 \value{
-a ggplot object
+A ggplot object.
 }
 \description{
-Plot sampling-based P values for deleting a group of metacells
+Plot sampling-based p-values for deleting a group of metacells
 }

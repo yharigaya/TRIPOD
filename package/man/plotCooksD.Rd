@@ -15,7 +15,7 @@ based on the cell types.}
 \item{...}{further arguments to be passed.}
 }
 \value{
-a ggplot object
+A ggplot object.
 }
 \description{
 Plot Cook's distance

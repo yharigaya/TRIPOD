@@ -2,7 +2,7 @@
 % Please edit documentation in R/influence.R
 \name{deleteNeighbor}
 \alias{deleteNeighbor}
-\title{Get P values representing the influence of deleting a group of metacells}
+\title{Get p-values representing the influence of deleting a group of metacells}
 \usage{
 deleteNeighbor(
   Yg,
@@ -23,7 +23,7 @@ deleteNeighbor(
 \item{Yj}{a numeric vector containing TF expression.}
 
 \item{alternative}{a character string specifying the alternative hypothesis.
-This must be one of "two.sided", "greater", or "less".}
+This must be one of "two.sided", "greater", and "less".}
 
 \item{metacell.celltype}{a character vector specifying cell types of the metacells.}
 
@@ -35,10 +35,10 @@ neighbors}
 \item{...}{further arguments to be passed.}
 }
 \value{
-a m-by-4 or m-by-5 matrix frame containing P values where m represents the
+A m-by-4 or m-by-5 matrix containing p-values where m represents the
 number of meta cells.
 }
 \description{
-This function computes sampling-based P-values representing the influence
+This function computes sampling-based p-values representing the influence
 of deleting a group of metacells on the linear interaction model.
 }

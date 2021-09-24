@@ -1,12 +1,11 @@
 #' Get Cook's distance
 #'
-#' This function computes Cook's distance on the linear regression model.
+#' This function computes Cook's distance on the linear regression model
+#' and prepares data for Cook's bar plot.
 #'
 #' @param ... further arguments to be passed.
 #' @inheritParams testInfluence
 #' @inheritParams getXYMatrices
-#'
-#' @return a list
 #'
 #' @import olsrr
 #' @importFrom stats lm
@@ -23,11 +22,10 @@ getCooksD <- function(Yg, Xt, Yj, metacell.celltype, ...) {
 
 #' Get DFFIT
 #'
-#' This function computes DFFIT on the linear regression model.
+#' This function computes DFFIT on the linear regression model
+#' and prepares data for DFFIT plot.
 #'
 #' @inheritParams getCooksD
-#'
-#' @return a list
 #'
 #' @import olsrr
 #' @importFrom stats dfbetas dffits lm
@@ -50,9 +48,9 @@ getDFFIT <- function(Yg, Xt, Yj, metacell.celltype, ...) {
   return(d.list)
 }
 
-#' Get P values representing the influence of deleting a group of metacells
+#' Get p-values representing the influence of deleting a group of metacells
 #'
-#' This function computes sampling-based P-values representing the influence
+#' This function computes sampling-based p-values representing the influence
 #' of deleting a group of metacells on the linear interaction model.
 #'
 #' @param metacell.neighbors an integer vector containing indices of metacell
@@ -60,7 +58,7 @@ getDFFIT <- function(Yg, Xt, Yj, metacell.celltype, ...) {
 #' @inheritParams getCooksD
 #' @inheritParams testInfluence
 #'
-#' @return a m-by-4 or m-by-5 matrix frame containing P values where m represents the
+#' @return A m-by-4 or m-by-5 matrix containing p-values where m represents the
 #' number of meta cells.
 #'
 #' @export
@@ -86,15 +84,15 @@ deleteNeighbor <- function(Yg, Xt, Yj, alternative,
   return(delta.coeff.pval)
 }
 
-#' Get P values representing the influence of deleting a celltype
+#' Get p-values representing the influence of deleting a celltype
 #'
-#' This function computes sampling-based P-values representing the influence
+#' This function computes sampling-based p-values representing the influence
 #' of deleting metacells of a given cell type on the linear interaction model.
 #'
 #' @inheritParams getCooksD
 #' @inheritParams testInfluence
 #'
-#' @return a data frame containing P values
+#' @return A data frame containing p-values.
 #'
 #' @export
 deleteCellType <- function(Yg, Xt, Yj, metacell.celltype,
@@ -120,9 +118,9 @@ deleteCellType <- function(Yg, Xt, Yj, metacell.celltype,
   return(delta.coeff.pval)
 }
 
-#' Get P values representing the influence of deleting branches of metacells
+#' Get p-values representing the influence of deleting branches of metacells
 #'
-#' This function computes sampling-based P-values representing influences
+#' This function computes sampling-based p-values representing influences
 #' of deleting branches of metacells on the linear interaction model.
 #' It requires a dendrogram of metacells.
 #'
@@ -130,7 +128,7 @@ deleteCellType <- function(Yg, Xt, Yj, metacell.celltype,
 #' @inheritParams getCooksD
 #' @inheritParams testInfluence
 #'
-#' @return a data frame containing P values
+#' @return A data frame containing p-values.
 #'
 #' @import dendextend
 #' @export
@@ -167,7 +165,7 @@ deleteBranch <- function(Yg, Xt, Yj, dend, alternative,
 #' Rows and columns represent cell clusters and feature names, respectively.
 #' @inheritParams getXYMatrices
 #'
-#' @return a dendrogram
+#' @return A dendrogram.
 #' @import dendextend
 #' @export
 getDendrogram <- function(metacell.matrix, metacell.celltype){
@@ -187,7 +185,7 @@ getDendrogram <- function(metacell.matrix, metacell.celltype){
 #' @param k an integer value setting the number of metacell neighbors to include
 #' @inheritParams getMetacellMatrix
 #'
-#' @return a matrix
+#' @return A matrix.
 #' @import FNN Seurat
 #' @export
 getMetacellNeighbor <- function(object, reduction,
@@ -208,16 +206,16 @@ getMetacellNeighbor <- function(object, reduction,
   return(metacell.neighbors)
 }
 
-#' Get sampling-based P-values
+#' Get sampling-based p-values
 #'
-#' This function computes sampling-based P-values representing influences
+#' This function computes sampling-based p-values representing influences
 #' of deleting metacells in a linear regression model.
 #'
 #' @param Yg a numeric vector containing RNA expression values.
 #' @param Xt a numeric vector containing chromatin accessibility.
 #' @param Yj a numeric vector containing TF expression.
 #' @param alternative a character string specifying the alternative hypothesis.
-#' This must be one of "two.sided", "greater", or "less".
+#' This must be one of "two.sided", "greater", and "less".
 #' @param metacell.rm an integer vector containing indices of metacells
 #' to be removed.
 #' @param plot.histogram an indicator as to whether to generate histograms
@@ -225,7 +223,7 @@ getMetacellNeighbor <- function(object, reduction,
 #' @param seed an integer
 #' @param ... further arguments passed to {\code{\link{hist}}}.
 #'
-#' @return a data frame. The rows represent metacells (?).
+#' @return A numerical vector containing p-values.
 #' @importFrom stats lm model.frame
 #' @importFrom graphics abline hist par
 #'
@@ -233,7 +231,7 @@ getMetacellNeighbor <- function(object, reduction,
 testInfluence <- function(Yg, Xt, Yj, alternative, metacell.rm,
 	plot.histogram = FALSE, nsamp = 10000, seed = 1234, ...) {
 	if (all(alternative != c("two.sided", "greater", "less"))) {
-		stop('The alternative argument must be one of "two.sided", "greater", or "less".')
+		stop('The alternative argument must be one of "two.sided", "greater", and "less".')
 	}
 	set.seed(seed)
   # fit a model with all data points

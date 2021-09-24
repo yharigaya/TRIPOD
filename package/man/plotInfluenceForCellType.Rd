@@ -17,11 +17,11 @@ plotInfluenceForCellType(
 \item{delta.coeff.pval}{a data frame returned by {\code{\link{deleteNeighbor}}}}
 
 \item{coefficient}{a character string specifying the coefficient to be plotted.
-This must be one of "Xt", "Yj", or "Xt:Yj".
+This must be one of "Xt", "Yj", and "Xt:Yj".
 If {\code{\link{deleteNeighbor}}} was run with an argument "two.sided",
 this can be set to fitted values, "Yg".}
 
-\item{threshold}{a value of nominal P value at which a horizontal line is drawn}
+\item{threshold}{a value of nominal p-value at which a horizontal line is drawn.}
 
 \item{metacell.celltype.col}{a character vector specifying colors of the metacells
 based on the cell types.}
@@ -30,7 +30,7 @@ based on the cell types.}
 specifies the order of the cell types in the plot.}
 }
 \value{
-a ggplot object
+A ggplot object.
 }
 \description{
 Plot sampling-based P-values for deleting a celltype

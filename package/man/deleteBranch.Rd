@@ -2,7 +2,7 @@
 % Please edit documentation in R/influence.R
 \name{deleteBranch}
 \alias{deleteBranch}
-\title{Get P values representing the influence of deleting branches of metacells}
+\title{Get p-values representing the influence of deleting branches of metacells}
 \usage{
 deleteBranch(
   Yg,
@@ -25,7 +25,7 @@ deleteBranch(
 \item{dend}{a dendrogram class object.}
 
 \item{alternative}{a character string specifying the alternative hypothesis.
-This must be one of "two.sided", "greater", or "less".}
+This must be one of "two.sided", "greater", and "less".}
 
 \item{metacell.celltype}{a character vector specifying cell types of the metacells.}
 
@@ -34,10 +34,10 @@ This must be one of "two.sided", "greater", or "less".}
 \item{...}{further arguments to be passed.}
 }
 \value{
-a data frame containing P values
+A data frame containing p-values.
 }
 \description{
-This function computes sampling-based P-values representing influences
+This function computes sampling-based p-values representing influences
 of deleting branches of metacells on the linear interaction model.
 It requires a dendrogram of metacells.
 }

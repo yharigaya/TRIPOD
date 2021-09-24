@@ -15,14 +15,14 @@ plotFeatureForNeighbor(delta.coeff.pval, object, reduction, coefficient, ...)
 The coordinates should be stored in the Seurat object.}
 
 \item{coefficient}{a character string specifying the coefficient to be plotted.
-This must be one of "Xt", "Yj", or "Xt:Yj".
+This must be one of "Xt", "Yj", and "Xt:Yj".
 If {\code{\link{deleteNeighbor}}} was run with an argument "two.sided",
 this can be set to fitted values, "Yg".}
 
 \item{...}{further arguments to be passed.}
 }
 \value{
-a ggplot object.
+A ggplot object.
 }
 \description{
 This function generates a UMAP plot colored by sampling-based P values

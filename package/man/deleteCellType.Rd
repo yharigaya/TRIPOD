@@ -2,7 +2,7 @@
 % Please edit documentation in R/influence.R
 \name{deleteCellType}
 \alias{deleteCellType}
-\title{Get P values representing the influence of deleting a celltype}
+\title{Get p-values representing the influence of deleting a celltype}
 \usage{
 deleteCellType(Yg, Xt, Yj, metacell.celltype, alternative, seed = 1234, ...)
 }
@@ -16,16 +16,16 @@ deleteCellType(Yg, Xt, Yj, metacell.celltype, alternative, seed = 1234, ...)
 \item{metacell.celltype}{a character vector specifying cell types of the metacells.}
 
 \item{alternative}{a character string specifying the alternative hypothesis.
-This must be one of "two.sided", "greater", or "less".}
+This must be one of "two.sided", "greater", and "less".}
 
 \item{seed}{an integer}
 
 \item{...}{further arguments to be passed.}
 }
 \value{
-a data frame containing P values
+A data frame containing p-values.
 }
 \description{
-This function computes sampling-based P-values representing the influence
+This function computes sampling-based p-values representing the influence
 of deleting metacells of a given cell type on the linear interaction model.
 }

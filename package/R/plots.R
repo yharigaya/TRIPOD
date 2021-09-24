@@ -1,23 +1,10 @@
-# # For pairs() function to plot pairwise plot
-# getPanelCor <- function(x, y, digits = 2, prefix = "", cex.cor = NULL, ...) {
-#   usr <- par("usr")
-#   on.exit(par(usr))
-#   par(usr = c(0, 1, 0, 1))
-#   filter <- !is.na(y) & !is.na(x) & !is.nan(x) & !is.nan(y) & !is.infinite(x) & !is.infinite(y)
-#   r <- cor(x[filter], y[filter])
-#   txt <- format(c(r, 0.123456789), digits = digits)[1]
-#   txt <- paste0(prefix, "r = ", txt)
-#   cex.cor <- 0.5 / strwidth(txt)
-#   text(0.5, 0.5, txt, cex = cex.cor * r * 2)
-# }
-
 #' Plot Cook's distance
 #'
 #' @param d.list a list returned by {\code{\link{getCooksD}}}
 #' @param ... further arguments to be passed.
 #' @inheritParams getXYMatrices
 #'
-#' @return a ggplot object
+#' @return A ggplot object.
 #'
 #' @import ggplot2
 #' @export
@@ -45,7 +32,7 @@ plotCooksD <- function(d.list, metacell.celltype.col, ...) {
 #' @param ... further arguments to be passed.
 #' @inheritParams getXYMatrices
 #'
-#' @return a ggplot object
+#' @return A ggplot object.
 #'
 #' @import ggplot2
 #' @export
@@ -72,19 +59,19 @@ plotDFFIT <- function(d.list, metacell.celltype.col, ...) {
 	return(p)
 }
 
-#' Plot sampling-based P values for deleting a group of metacells
+#' Plot sampling-based p-values for deleting a group of metacells
 #'
 #' @param delta.coeff.pval a data frame returned by {\code{\link{deleteNeighbor}}}
 #' @param coefficient a character string specifying the coefficient to be plotted.
-#' This must be one of "Xt", "Yj", or "Xt:Yj".
+#' This must be one of "Xt", "Yj", and "Xt:Yj".
 #' If {\code{\link{deleteNeighbor}}} was run with an argument "two.sided",
 #' this can be set to fitted values, "Yg".
 #' @param ... further arguments to be passed.
-#' @param threshold a value of nominal P value at which a horizontal line is drawn
+#' @param threshold a value of nominal p-value at which a horizontal line is drawn.
 #' @inheritParams getXYMatrices
 #' @inheritParams testInfluence
 #'
-#' @return a ggplot object
+#' @return A ggplot object.
 #'
 #' @import ggplot2
 #' @export
@@ -128,7 +115,7 @@ plotInfluenceForNeighbor <- function(delta.coeff.pval, coefficient,
 #' @param ... further arguments to be passed.
 #' @inheritParams plotInfluenceForNeighbor
 #'
-#' @return a ggplot object.
+#' @return A ggplot object.
 #'
 #' @import ggplot2
 #' @export
@@ -156,7 +143,7 @@ plotFeatureForNeighbor <- function(delta.coeff.pval, object, reduction,
 #' specifies the order of the cell types in the plot.
 #' @inheritParams plotInfluenceForNeighbor
 #'
-#' @return a ggplot object
+#' @return A ggplot object.
 #'
 #' @import ggplot2
 #' @export
@@ -194,12 +181,12 @@ plotInfluenceForCellType <- function(delta.coeff.pval, coefficient, threshold = 
 	return(p)
 }
 
-#' Plot sampling-based P-values for deleting a celltype
+#' Plot sampling-based p-values for deleting a cell type
 #'
 #' @param dend a dendrogram.
 #' @inheritParams plotInfluenceForNeighbor
 #'
-#' @return a ggplot object.
+#' @return A ggplot object.
 #'
 #' @import dendextend
 #' @export
@@ -515,13 +502,8 @@ plotGenePeakTFScatter <- function(
     Yj <- capValues(Yj, cap.at.quantile = cap.at.quantile)
 	}
 
-#   if (to.plot == "marginal") {
   if (to.plot == "marginal.Yg.Xt") {
     # plot Yg against Xt
-  # 	title <- paste(
-  #     "Marginal Gene", gene.name, "expr. VS
-  # 		Peak", peak.name, "access.:\nr =", round(xymats$cor.alpha[peak.num], 2),
-  #     "p-val =", signif(xymats$pval.alpha.m[peak.num], 2))
   	tmp <- cor.test(Xt, Yg)
     est <- tmp$estimate
     pval <- tmp$p.value
@@ -544,10 +526,6 @@ plotGenePeakTFScatter <- function(
 
   if (to.plot == "marginal.Yg.Yj") {
     # plot Yg against Yj
-  #   title <- paste(
-  #     "Marginal Gene", gene.name, "expr. VS
-  # 		TF", TF.name, "expr.:\nr =", round(xymats$cor.beta[TF.num], 2),
-  #     "p-val =", signif(xymats$pval.beta.m[peak.num], 2))
     tmp <- cor.test(Yj, Yg)
     est <- tmp$estimate
     pval <- tmp$p.value
@@ -570,9 +548,6 @@ plotGenePeakTFScatter <- function(
 
   if (to.plot == "marginal.Yj.Xt") {
     # plot Yj against Xt
-    # title <- paste(
-    # 	"Marginal Peak access. VS TF  expr.:\nr =", round(xymats$cor.eta[peak.num, TF.num], 2),
-    # 	"p-val =", signif(xymats$pval.eta.m[peak.num, TF.num], 2))
     tmp <- cor.test(Xt, Yj)
     est <- tmp$estimate
     pval <- tmp$p.value
@@ -595,10 +570,6 @@ plotGenePeakTFScatter <- function(
 
   if (to.plot == "product") {
     # plot Yg against Xt * Yj
-    # title <- paste(
-    # 	"Gene expr. VS (peak access. x TF expr.):\n",
-    # 	"r =", round(cor(Xt * Yj, Yg), 4),
-    #   "p-val =", signif(xymats$pval.gamma.m[sel.t, jj], 2))
   	tmp <- cor.test(Xt * Yj, Yg)
     est <- tmp$estimate
     pval <- tmp$p.value
@@ -619,17 +590,10 @@ plotGenePeakTFScatter <- function(
     rm(title)
   }
 
-  # if (to.plot == "conditional") {
   if (to.plot == "conditional.on.Yj") {
     # compute partial residuals
     remainY <- residuals(lm(Yg ~ Yj))
     remainX <- residuals(lm(Xt ~ Yj))
-    # tmp <- lm(remainY ~ remainX)
-    # partial.p <- summary(tmp)$coefficients[2, 4]
-    # # partial.est <- summary(tmp)$coefficients[2, 1]
-    # title <- paste0("Conditional",
-    # 	", alpha = ", format(xymats$alpha.c[peak.num, TF.num], digits = 2),
-    # 	", p-val= ", format(xymats$pval.alpha.c[peak.num, TF.num], digits = 2))
     tmp <- cor.test(remainX, remainY)
     est <- tmp$estimate
     pval <- tmp$p.value
@@ -657,12 +621,6 @@ plotGenePeakTFScatter <- function(
     # compute partial residuals
     remainY <- residuals(lm(Yg ~ Xt))
     remainX <- residuals(lm(Yj ~ Xt))
-    # tmp <- lm(remainY ~ remainX)
-    # partial.p <- summary(tmp)$coefficients[2, 4]
-    # # partial.est <- summary(tmp)$coefficients[2, 1]
-    # title <- paste0("Conditional",
-    #   ", beta = ", format(xymats$beta.c[peak.num, TF.num], digits = 2),
-    # 	", p-val = ", format(xymats$pval.beta.c[peak.num, TF.num], digits = 2))
     tmp <- cor.test(remainX, remainY)
     est <- tmp$estimate
     pval <- tmp$p.value
@@ -690,12 +648,6 @@ plotGenePeakTFScatter <- function(
     # compute partial residuals
     remainY <- residuals(lm(Yg ~ Xt + Yj))
     remainX <- residuals(lm(Xt * Yj ~ Xt + Yj))
-    # tmp <- lm(remainY ~ remainX)
-    # partial.p <- summary(tmp)$coefficients[2, 4]
-    # partial.est <- summary(tmp)$coefficients[2, 1]
-    # title <- paste0("Interaction",
-    #   ", gamma = ", format(partial.est, digits = 2),
-    # 	", p-val = ", format(partial.p, digits = 2))
     tmp <- cor.test(remainX, remainY)
     est <- tmp$estimate
     pval <- tmp$p.value
@@ -723,8 +675,6 @@ plotGenePeakTFScatter <- function(
       cap.at.quantile = cap.at.quantile, delta = delta,
       min.level1 = min.level1, min.level2 = min.level2,
     	metacell.celltype.col = xymats$metacell.celltype.col,
-      # do.plot = do.plot, col = metacell.celltype.col,
-      # plot.dir = plot.dir, file.name = file.name, partition.screen = TRUE,
       verbose = verbose)
     matched.cells <- res$matched.cells
     dYg <- matched.cells$dYg

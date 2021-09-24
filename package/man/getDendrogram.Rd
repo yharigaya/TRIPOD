@@ -14,7 +14,7 @@ Rows and columns represent cell clusters and feature names, respectively.}
 \item{metacell.celltype}{a character vector specifying cell types of the metacells.}
 }
 \value{
-a dendrogram
+A dendrogram.
 }
 \description{
 Get a dendrogram

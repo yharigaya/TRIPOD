@@ -18,7 +18,7 @@ of the Seurat object.}
 \item{k}{an integer value setting the number of metacell neighbors to include}
 }
 \value{
-a matrix
+A matrix.
 }
 \description{
 Get metacell neighbors
