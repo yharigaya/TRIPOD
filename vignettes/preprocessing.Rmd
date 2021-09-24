@@ -35,7 +35,7 @@ and 32285 gene regions, respectively.
 
 The TRIPOD package is available from [GitHub](https://github.com/yharigaya/TRIPOD).
 
-```{r install, eval = TRUE, message = FALSE, warning = FALSE}
+```{r install, eval = FALSE, message = FALSE, warning = FALSE}
 if (!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools")
 devtools::install_github("yharigaya/TRIPOD/package")
 ```
