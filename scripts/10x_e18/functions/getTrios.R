@@ -34,7 +34,7 @@ getTrios <- function(
 	
 	df.list <- bplapply(
 		X = genes,
-		FUN = getTriosForSingleGene2, # try()
+		FUN = getTriosForSingleGene, # try()
 		xymats.list = xymats.list, 
 	  fdr.thresh = fdr.thresh, 
 	  sign = sign, # "positive" or "negative"
