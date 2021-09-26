@@ -13,7 +13,7 @@ getTFGenePairs <- function(
 	}
   df.list <- bplapply(
   	X = xymats.list,
-  	FUN = getTFGenePairsForSingleGene2,
+  	FUN = getTFGenePairsForSingleGene,
   	coef.name = coef.name,
 	  pval.name = pval.name,
 	  sign = sign,
