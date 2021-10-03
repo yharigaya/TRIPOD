@@ -1,6 +1,6 @@
 # set directories
-dir.in <- "data"
-dir.out <- "output"
+dir.in <- "source_data"
+dir.out <- "derived_data"
 dir.fig <- "figures"
 dir.r <- "functions"
 
@@ -31,7 +31,7 @@ file <- "xymats.list.rds"
 path <- file.path(dir.out, file)
 xymats.list <- readRDS(path); rm(path)
 
-file <- "metacell.celltype.rds" 
+file <- "metacell.celltype.rds"
 path <- file.path(dir.out, file)
 wnn.celltype <- readRDS(path); rm(path)
 
@@ -41,7 +41,7 @@ wnn.celltype.col <- readRDS(path); rm(path)
 
 file <- "color.map.rds"
 path <- file.path(dir.out, file)
-col.map <- readRDS(path); rm(path)	
+col.map <- readRDS(path); rm(path)
 
 file <- "e18.metacell.rds"
 path <- file.path(dir.out, file)
@@ -52,13 +52,13 @@ DefaultAssay(e18) <- "ATAC"
 
 # create a motif object
 pfm.set <- getMatrixSet(
-	x = JASPAR2020, 
+	x = JASPAR2020,
 	opts = list(species = 9606, all_versions = FALSE)) # human
 # replace the olig2 motif with what is supported by the published literature
 pfm.olig2 <- PFMatrix(
-	ID = "PFM.Olig2", 
+	ID = "PFM.Olig2",
 	name = "OLIG2", # name = "olig2",
-  # matrixClass = "Zipper-Type", 
+  # matrixClass = "Zipper-Type",
 	strand = "+",
 	bg = c(A = 0.25, C = 0.25, G = 0.25, T = 0.25),
   tags = list(
@@ -85,9 +85,9 @@ motif.positions <- matchMotifs(
   out = "positions",
   genome = "mm10"
 )
-motif.matrix <- CreateMotifMatrix(features = granges(e18), 
+motif.matrix <- CreateMotifMatrix(features = granges(e18),
 	pwm = pfm.set, genome = "mm10", use.counts = FALSE)
-motif.object <- CreateMotifObject(data = motif.matrix, 
+motif.object <- CreateMotifObject(data = motif.matrix,
 	pwm = pfm.set, positions = motif.positions)
 
 file <- "motif.positions.rds"
@@ -107,7 +107,7 @@ tfs.neuro <- c("Pax6", "Neurog2", "Eomes", "Neurod1", "Tbr1")
 tfs.glio <- c("Olig2", "Sox10", "Nkx2-2", "Sox9", "Nfia", "Ascl1")
 tfs <- c(tfs.neuro, tfs.glio)
 
-e18 <- SetAssayData(e18, assay = "ATAC", 
+e18 <- SetAssayData(e18, assay = "ATAC",
 	slot = "motifs", new.data = motif.object)
 TF.names <- tfs
 for (i in 1:length(TF.names)) {

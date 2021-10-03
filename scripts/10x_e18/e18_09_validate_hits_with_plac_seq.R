@@ -12,12 +12,12 @@ library(pheatmap)
 library(RColorBrewer)
 
 # set directories
-dir.in <- "data"
-dir.out <- "output"
+dir.in <- "source_data"
+dir.out <- "derived_data"
 dir.fig <- "figures"
 dir.r <- "functions"
 
-# download data into the data directory
+# download data into the dir.in directory
 # https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM3819641
 # GSM3819641_RH_025_final.10k.2.peaks.bedpe.gz
 # https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM3819642
@@ -57,6 +57,8 @@ file <- "GSM3819642_RH_026_final.10k.2.peaks.bedpe"
 path <- file.path(dir.in, file)
 plac.df.2 <- read.table(path, head = T); rm(path)
 
+### perform analysis for combined PLAC-seq replicates ###
+
 # combine replicates
 plac.df <- rbind(plac.df.1, plac.df.2)
 plac.df <- plac.df[order(plac.df$start1), ]
@@ -78,13 +80,13 @@ saveRDS(plac.gr.list, path); rm(path)
 # set resolution
 resolution <- 1e4
 
-# format plac-seq data
+# get TSS
 TSS <- promoters(transcripts.gr, upstream = 0, downstream = 1)
 
 # get a list of pairs for all target genes whose TSS overlaps one of PLAC-seq regions
 all.pairs <- getAllPairs(
   genes = genes,
-	xymats.list = xymats.list, 
+	xymats.list = xymats.list,
 	TSS = TSS,
 	resolution = resolution,
 	gr.list = plac.gr.list)
@@ -95,7 +97,7 @@ saveRDS(all.pairs, path); rm(path)
 # obtain gene-peak pairs supported by PLAC-seq
 plac.pairs <- getInteractingPairs(
   genes = genes,
-	xymats.list = xymats.list, 
+	xymats.list = xymats.list,
 	TSS = TSS,
 	resolution = resolution,
 	gr.list = plac.gr.list)
@@ -125,13 +127,13 @@ file <- "sig.string.list.pos.0.01.rds"
 path <- file.path(dir.out, file)
 saveRDS(sig.string.list, path); rm(path)
 
-res.matrix <- t(sapply(sig.string.list, hypergeometricTestForStrings, 
+res.matrix <- t(sapply(sig.string.list, hypergeometricTestForStrings,
 	all = all.pairs, ground.truth = plac.pairs))
 rownames(res.matrix) <- names(sig.string.list)
 colnames(res.matrix) <- c("q", "m", "n", "k", "pval")
 res <- as.data.frame(res.matrix)
 
-# perform Bonferroni correction 
+# perform Bonferroni correction
 res$adj <- p.adjust(res$pval, method = "bonferroni")
 
 # take the negative log of p-values
@@ -141,8 +143,12 @@ file <- "res.plac.seq.pos.0.01.csv"
 path <- file.path(dir.out, file)
 write.csv(res, path); rm(path)
 
+# rename objects
+res.merged <- res; rm(res)
+sig.string.list.merged <- sig.string.list; rm(sig.string.list)
+
 # draw three circle Venn diagram
-int.string.list <- lapply(sig.string.list, intersect, all.pairs)
+int.string.list <- lapply(sig.string.list.merged, intersect, all.pairs)
 set1 <- int.string.list$m1.alpha
 set2 <- int.string.list$m5Y.union
 set3 <- plac.pairs
@@ -163,19 +169,21 @@ p2 <- ggplot(t, aes(A = set1, B = set2, C = set3)) +
 		  "     TRIPOD",
 		  "PLAC-seq"),
     set_name_color = "black",
-    fill_color = c("#0073C2FF", "#EFC000FF", "#868686FF", "#CD534CFF"),
-    text_size = 1.8, stroke_size = 0.2, set_name_size = 2.5) + 
+    fill_color = c("#0073C2FF", "#EFC000FF", "#868686FF"),
+    text_size = 1.8, stroke_size = 0.2, set_name_size = 2.5) +
 	theme_void() +
   theme(
-	  # plot.title = element_text(size = 6, hjust = 0.5), 
+	  # plot.title = element_text(size = 6, hjust = 0.5),
 	  # margin = margin(t = 10, b = -20)),
     plot.margin = margin(t = 0, r = 1, b = 0, l = 0, unit = "cm"),
     panel.spacing = unit(0, "lines")) +
   coord_fixed()
 
 file <- "venn_plac_seq.pdf"
-path <- file.path(dir.fig.plac, file)
+path <- file.path(dir.fig, file)
 ggsave(filename = path, plot = p2, width = 2, height = 2); rm(path)
+
+### perform analysis for PLAC-seq replicate 1 ###
 
 # generate a Granges object for replicate 1
 plac.df <- plac.df.1
@@ -193,29 +201,10 @@ file <- "plac.rep1.gr.list.rds"
 path <- file.path(dir.out, file)
 if (!file.exists(path)) {saveRDS(plac.gr.list, path)}; rm(path)
 
-# generate a Granges object for replicate 2
-plac.df <- plac.df.2
-plac.df <- plac.df[order(plac.df$start1), ]
-plac.df <- plac.df[order(plac.df$chr1), ]
-plac.1.gr <- GRanges(seqnames = plac.df$chr1,
-	ranges = IRanges(start = plac.df$start1 + 1, end = plac.df$end1),
-	index = 1:nrow(plac.df))
-plac.2.gr <- GRanges(seqnames = plac.df$chr2,
-	ranges = IRanges(start = plac.df$start2 + 1, end = plac.df$end2),
-	index = 1:nrow(plac.df))
-plac.gr.list <- list(plac.1.gr, plac.2.gr)
-names(plac.gr.list) <- c("plac.1", "plac.2")
-file <- "plac.rep2.gr.list.rds"
-path <- file.path(dir.out, file)
-if (!file.exists(path)) {saveRDS(plac.gr.list, path)}; rm(path)
-
-# set resolution
-resolution <- 1e4
-
 # analyze replicate 1
 all.pairs <- getAllPairs(
   genes = genes,
-	xymats.list = xymats.list, 
+	xymats.list = xymats.list,
 	TSS = TSS,
 	resolution = resolution,
 	gr.list = plac.gr.list)
@@ -225,7 +214,7 @@ if (!file.exists(path)) {saveRDS(all.pairs, path)}; rm(path)
 
 plac.pairs <- getInteractingPairs(
   genes = genes,
-	xymats.list = xymats.list, 
+	xymats.list = xymats.list,
 	TSS = TSS,
 	resolution = resolution,
 	gr.list = plac.gr.list)
@@ -252,13 +241,13 @@ file <- "sig.string.list.pos.0.01.rep1.rds"
 path <- file.path(dir.out, file)
 if (!file.exists(path)) {saveRDS(sig.string.list, path)}; rm(path)
 
-res.matrix <- t(sapply(sig.string.list, hypergeometricTestForStrings, 
+res.matrix <- t(sapply(sig.string.list, hypergeometricTestForStrings,
 	all = all.pairs, ground.truth = plac.pairs))
 rownames(res.matrix) <- names(sig.string.list)
 colnames(res.matrix) <- c("q", "m", "n", "k", "pval")
 # create data frames
 res <- as.data.frame(res.matrix)
-# perform Bonferroni correction 
+# perform Bonferroni correction
 res$adj <- p.adjust(res$pval, method = "bonferroni")
 # take the negative log of p-values
 res$log <- -log10(res$adj)
@@ -266,11 +255,32 @@ res$log <- -log10(res$adj)
 file <- "res.plac.seq.pos.0.01.rep1.csv"
 path <- file.path(dir.out, file)
 write.csv(res, path); rm(path)
+# rename objects
+res1 <- res; rm(res)
+sig.string.list1 <- sig.string.list; rm(sig.string.list)
+
+### perform analysis for PLAC-seq replicate 2 ###
+
+# generate a Granges object for replicate 2
+plac.df <- plac.df.2
+plac.df <- plac.df[order(plac.df$start1), ]
+plac.df <- plac.df[order(plac.df$chr1), ]
+plac.1.gr <- GRanges(seqnames = plac.df$chr1,
+	ranges = IRanges(start = plac.df$start1 + 1, end = plac.df$end1),
+	index = 1:nrow(plac.df))
+plac.2.gr <- GRanges(seqnames = plac.df$chr2,
+	ranges = IRanges(start = plac.df$start2 + 1, end = plac.df$end2),
+	index = 1:nrow(plac.df))
+plac.gr.list <- list(plac.1.gr, plac.2.gr)
+names(plac.gr.list) <- c("plac.1", "plac.2")
+file <- "plac.rep2.gr.list.rds"
+path <- file.path(dir.out, file)
+if (!file.exists(path)) {saveRDS(plac.gr.list, path)}; rm(path)
 
 # analyze replicate 2
 all.pairs <- getAllPairs(
   genes = genes,
-	xymats.list = xymats.list, 
+	xymats.list = xymats.list,
 	TSS = TSS,
 	resolution = resolution,
 	gr.list = plac.gr.list)
@@ -280,7 +290,7 @@ if (!file.exists(path)) {saveRDS(all.pairs, path)}; rm(path)
 
 plac.pairs <- getInteractingPairs(
   genes = genes,
-	xymats.list = xymats.list, 
+	xymats.list = xymats.list,
 	TSS = TSS,
 	resolution = resolution,
 	gr.list = plac.gr.list)
@@ -307,13 +317,13 @@ file <- "sig.string.list.pos.0.01.rep2.rds"
 path <- file.path(dir.out, file)
 if (!file.exists(path)) {saveRDS(sig.string.list, path)}; rm(path)
 
-res.matrix <- t(sapply(sig.string.list, hypergeometricTestForStrings, 
+res.matrix <- t(sapply(sig.string.list, hypergeometricTestForStrings,
 	all = all.pairs, ground.truth = plac.pairs))
 rownames(res.matrix) <- names(sig.string.list)
 colnames(res.matrix) <- c("q", "m", "n", "k", "pval")
 # create data frames
 res <- as.data.frame(res.matrix)
-# perform Bonferroni correction 
+# perform Bonferroni correction
 res$adj <- p.adjust(res$pval, method = "bonferroni")
 # take the negative log of p-values
 res$log <- -log10(res$adj)
@@ -321,13 +331,15 @@ res$log <- -log10(res$adj)
 file <- "res.plac.seq.pos.0.01.rep2.csv"
 path <- file.path(dir.out, file)
 write.csv(res, path); rm(path)
+# rename objects
+res2 <- res; rm(res)
+sig.string.list2 <- sig.string.list; rm(sig.string.list)
+
+### combine and visualize the results ###
 
 # read back in data
-files <- list.files(dir.out, pattern = ".csv$", full.names = TRUE)
-csv.list <- lapply(files, read.csv, row.names = 1)
-log.pval.matrix <- sapply(csv.list, function(x) x$log)
-log.pval.matrix <- log.pval.matrix[, c(2, 3, 1)]
-rownames(log.pval.matrix) <- rownames(csv.list[[1]])
+log.pval.matrix <- cbind(res1$log, res2$log, res.merged$log)
+rownames(log.pval.matrix) <- rownames(res.merged)
 colnames(log.pval.matrix) <- c("rep1", "rep2", "merged")
 log.pval.matrix <- log.pval.matrix[c(1:7, 10:11), ]
 
@@ -356,13 +368,13 @@ labels.col <- c(
 	"Merged"
 )
 v <- c(log.pval.matrix)
-number.color <- rep("gray10", length(v)) 
+number.color <- rep("gray10", length(v))
 number.color[v > 20] <- "gray90"
 
 file <- "heatmap_placseq_log_pval.pdf"
-path <- file.path(dir.fig.plac, file)
+path <- file.path(dir.fig, file)
 file.exists(path)
-pheatmap(
+x <- pheatmap(
 	log.pval.matrix,
   color = color,
 	breaks = breaks,
@@ -379,13 +391,18 @@ pheatmap(
 	display_numbers = TRUE,
 	number_color = number.color, legend = FALSE
 )
-dev.print(pdf, path, width = 2.5, height = 3.25); rm(path)
-graphics.off()
+path <- file.path(dir.fig, file)
+pdf(path, width = 2.5, height = 3.25)
+grid::grid.newpage()
+grid::grid.draw(x$gtable)
+dev.off()
+# dev.print(pdf, path, width = 2.5, height = 3.25); rm(path)
+# graphics.off()
 
 # draw three circle Venn diagram
-int.strings.list <- lapply(sig.strings.list, intersect, all.pairs)
-marginal <- int.strings.list[[2]]
-strings.list <- int.strings.list[-c(2, 9)]
+int.string.list <- lapply(sig.string.list.merged, intersect, all.pairs)
+marginal <- int.string.list[[2]]
+string.list <- int.string.list[c(1, 3:7, 10)]
 
 titles <- c(
   "LinkPeaks",
@@ -397,10 +414,10 @@ titles <- c(
   "TRIPOD union"
 )
 
-p.list <- vector("list", length(strings.list))
-for (i in 1:length(strings.list)) {
+p.list <- vector("list", length(string.list))
+for (i in 1:length(string.list)) {
 	set1 <- marginal
-  set2 <- strings.list[[i]]
+  set2 <- string.list[[i]]
   set3 <- plac.pairs
   set.list <- list(set1, set2, set3)
   union <- Reduce("union", set.list)
@@ -419,7 +436,7 @@ for (i in 1:length(strings.list)) {
 		    "Modeling",
 		    "PLAC-seq"),
     	# set_name_color = "white",
-    	fill_color = c("#0073C2FF", "#EFC000FF", "#868686FF", "#CD534CFF"),
+    	fill_color = c("#0073C2FF", "#EFC000FF", "#868686FF"),
     	# text_size = 1.8, stroke_size = 0.2, set_name_size = 1) +
     	text_size = 2.5, stroke_size = 0.2, set_name_size = 3) +
 		theme_void() +
@@ -431,7 +448,7 @@ for (i in 1:length(strings.list)) {
 }
 
 file <- "venn_plac_seq_all.pdf"
-path <- file.path(dir.fig.plac, file)
+path <- file.path(dir.fig, file)
 file.exists(path)
 pdf(path)
 wrap_plots(p.list) + plot_layout(ncol = 4)

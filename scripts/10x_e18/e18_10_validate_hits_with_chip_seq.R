@@ -20,15 +20,15 @@ library(pheatmap)
 require(RColorBrewer)
 
 # set directories
-dir.in <- "data"
-dir.out <- "output"
+dir.in <- "source_data"
+dir.out <- "derived_data"
 dir.fig <- "figures"
 dir.r <- "functions"
 
-# download data into the data directory
-# http://hgdownload.cse.ucsc.edu/goldenpath/mm9/liftOver/
-# https://hgdownload-test.gi.ucsc.edu/goldenPath/rn4/vsMm10/
-# https://hgdownload.soe.ucsc.edu/goldenPath/rn5/vsMm10/
+# download data into the source data directory
+# http://hgdownload.cse.ucsc.edu/goldenpath/mm9/liftOver/mm9ToMm10.over.chain.gz
+# https://hgdownload-test.gi.ucsc.edu/goldenPath/rn4/vsMm10/rn4.mm10.all.chain.gz
+# https://hgdownload.soe.ucsc.edu/goldenPath/rn5/vsMm10/rn5.mm10.all.chain.gz
 # olig2
 # GSE42454_RAW/GSM1040156_Olig2_ChIP-seq_OPC.bed.gz
 # GSE42454_RAW/GSM1040157_Olig2_ChIP-seq_iOL.bed.gz
@@ -71,22 +71,24 @@ file <- "rn5.mm10.all.chain"
 path <- file.path(dir.in, file)
 rn5tomm10 <- import.chain(path); rm(path)
 
+# get file names for ChIP-seq data
+files <- list.files(dir.in, pattern = ".bed.gz$", full.names = TRUE)
+
 # create a list of GRanges object for olig2
-dir.olig2 <- file.path(dir.in, "GSE42454/GSE42454_RAW")
-files <- list.files(dir.olig2, pattern = ".bed.gz$", full.names = TRUE)
-peaks.olig2.rn4.list <- lapply(files, import)
+files.olig2 <- files[grep("Olig2", files)]
+peaks.olig2.rn4.list <- lapply(files.olig2, import)
 names(peaks.olig2.rn4.list) <- c("opc", "iol", "mol") # the order is kept
 peaks.olig2.list <- lapply(peaks.olig2.rn4.list, function(x) unlist(liftOver(x, rn4tomm10)))
 
 # create a GRanges object for neurog2
-file <- "GSE63620_RAW/GSM1553880_Neurog2.bed.gz"
+file <- "GSM1553880_Neurog2.bed.gz"
 path <- file.path(dir.in, file)
 peaks.neurog2.mm9 <- import(path); rm(path)
 peaks.neurog2 <- unlist(liftOver(peaks.neurog2.mm9, mm9tomm10))
 strand(peaks.neurog2) <- "*"
 
 # create a GRanges object for eomes
-file <- "GSE63620_RAW/GSM1553879_Tbr2.bed.gz"
+file <- "GSM1553879_Tbr2.bed.gz"
 path <- file.path(dir.in, file)
 peaks.eomes.mm9 <- import(path); rm(path)
 peaks.eomes <- unlist(liftOver(peaks.eomes.mm9, mm9tomm10))
@@ -100,7 +102,7 @@ peaks.tbr1 <- unlist(liftOver(peaks.tbr1.mm9, mm9tomm10))
 
 chip.gr.list <- list(
 	olig2.opc = peaks.olig2.list$opc,
-	olig2.iol = peaks.olig2.list$iol, 
+	olig2.iol = peaks.olig2.list$iol,
 	olig2.mol = peaks.olig2.list$mol,
 	neurog2 = peaks.neurog2,
 	eomes = peaks.eomes,
@@ -116,10 +118,10 @@ hit.list <- lapply(
 	X = trio.string.list,
 	FUN = convertTrioStringToDF)
 
-TF.names <- c(rep("Olig2", 3), "Neurog2", "Eomes", "Tbr1",)
+TF.names <- c(rep("Olig2", 3), "Neurog2", "Eomes", "Tbr1")
 
 # compute q, m, n, and k
-res.list.list <- list() 
+res.list.list <- list()
 for (i in 1:length(chip.gr.list)) {
 	print(i)
   chip.gr <- chip.gr.list[[i]]
@@ -139,16 +141,15 @@ for (i in 1:length(chip.gr.list)) {
 	  res.list[[j]] <- res
   }
   names(res.list) <- names(hit.list)
-  res.list.list[[i]] <- res.list 
+  res.list.list[[i]] <- res.list
   # cat("\n")
 }
 names(res.list.list) <- names(chip.gr.list)
 file <- "res.chip.seq.list.list.0.01.rds"
-path <- file.path(dir.chip, file)
+path <- file.path(dir.out, file)
 saveRDS(res.list.list, path); rm(path)
 
 # write q, m, n, k, fold enrichment, p-value, and -log(p-value) to files
-res.list.list <- res.list.list.0.01
 for (i in 1:length(res.list.list)) {
 	x <- data.frame(t(sapply(res.list.list[[i]], colSums)))
   x$fe <- (x$q/x$k)/(x$m/(x$m+x$n))
@@ -156,24 +157,24 @@ for (i in 1:length(res.list.list)) {
   x$log <- -log10(x$pval)
   x <- x[c(seq(1, nrow(x), 2), seq(2, nrow(x), 2)), ]
   outfile <- paste0("res.chip.seq.0.01.", names(res.list.list)[i], ".csv")
-  path <- file.path(dir.chip, outfile)
+  path <- file.path(dir.out, outfile)
   write.csv(x, path, quote = FALSE); rm(path)
 }
 
 enrichment.score.df <- data.frame(t(sapply(res.list.list, getEnrichmentScore)))
 enrichment.score.pos <- enrichment.score.df[, seq(1, ncol(enrichment.score.df), 2)]
 file <- "enrichment.score.pos.0.01.csv"
-path <- file.path(dir.chip, file)
+path <- file.path(dir.out, file)
 write.csv(enrichment.score.pos, path); rm(path)
 
 # generate heatmaps
 color <- colorRampPalette(brewer.pal(n = 9, name = "Greens"))(100)
 
-file <- "enrichment.score.pos.0.01.csv"
-path <- file.path(dir.chip, file)
-enrichment.score.pos <- read.csv(path, row.names = 1); rm(path)
+# file <- "enrichment.score.pos.0.01.csv"
+# path <- file.path(dir.out, file)
+# enrichment.score.pos <- read.csv(path, row.names = 1); rm(path)
 
-x1 <- t(enrichment.score.pos[c(1:4, 10:8), ])
+x1 <- t(enrichment.score.pos)
 x1 <- x1[c(1, 8), ]
 limit <- ceiling(max(x1, na.rm = TRUE)/10)*10
 breaks <- seq(0, limit, limit/100)
@@ -187,15 +188,14 @@ labels.col <- c(
 	"Olig2 (OPC)",
 	"Olig2 (iOL)",
 	"Olig2 (mOL)",
-	"Sox10",
 	"Neurog2",
 	"Eomes",
 	"Tbr1"
 )
 
 file <- "tf_chipseq_enrichment_pos_0.01.pdf"
-path <- file.path(dir.fig.chip, file)
-pheatmap(
+path <- file.path(dir.fig, file)
+x <- pheatmap(
 	x1,
   color = color,
 	breaks = breaks,
@@ -212,15 +212,21 @@ pheatmap(
 	display_numbers = TRUE,
 	legend = FALSE
 )
-dev.print(pdf, path, width = 2.5, height = 1); rm(path)
-graphics.off()
+path <- file.path(dir.fig, file)
+pdf(path, width = 2.5, height = 1)
+grid::grid.newpage()
+grid::grid.draw(x$gtable)
+dev.off()
+
+# dev.print(pdf, path, width = 2.5, height = 1); rm(path)
+# graphics.off()
 
 palette <- color
 main <- expression(-log[10](~italic(P)~value))
 
 # generate  color legend
 file <- "legend_chipseq_horizontal.pdf"
-path <- file.path(dir.fig.chip, file)
+path <- file.path(dir.fig, file)
 pdf(path, width = 1, height = 0.6); rm(path)
 par(mar = c(1, 0.5, 1, 0.5))
 par(mgp = c(2, -0.2, 0))

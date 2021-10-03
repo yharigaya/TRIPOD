@@ -1,6 +1,6 @@
 # set directories
-dir.in <- "data"
-dir.out <- "output"
+dir.in <- "source_data"
+dir.out <- "derived_data"
 dir.fig <- "figures"
 dir.r <- "functions"
 
@@ -9,30 +9,8 @@ library(dplyr)
 library(ggplot2)
 library(Seurat)
 library(Signac)
-# library(EnsDb.Mmusculus.v79)
-# library(GenomeInfoDb)
-# library(presto)
-
-# library(chromVAR)
-# library(JASPAR2020)
-# library(TFBSTools)
-# library(motifmatchr)
-# library(BSgenome.Mmusculus.UCSC.mm10)
-
-# library(glmnet)
-# library(pheatmap)
-# library(fields)
-# library(qvalue)
-# library(gplots)
-# library(patchwork)
 library(olsrr)
-# library(pdftools)
-# library(ape)
 library(dendextend)
-# library(gplots)
-# library(nbpMatching)
-# library(fields)
-# library(RColorBrewer)
 library(gridBase)
 library(grid)
 library(FNN)
@@ -51,15 +29,15 @@ file <- "xymats.list.rds"
 path <- file.path(dir.out, file)
 xymats.list <- readRDS(path); rm(path)
 
-file <- "metacell.rna.rds" 
+file <- "metacell.rna.rds"
 path <- file.path(dir.out, file)
 wnn.rna <- readRDS(path); rm(path)
 
-file <- "metacell.peak.rds" 
+file <- "metacell.peak.rds"
 path <- file.path(dir.out, file)
 wnn.peak <- readRDS(path); rm(path)
 
-file <- "metacell.celltype.rds" 
+file <- "metacell.celltype.rds"
 path <- file.path(dir.out, file)
 wnn.celltype <- readRDS(path); rm(path)
 
@@ -69,7 +47,7 @@ wnn.celltype.col <- readRDS(path); rm(path)
 
 file <- "color.map.rds"
 path <- file.path(dir.out, file)
-col.map <- readRDS(path); rm(path)	
+col.map <- readRDS(path); rm(path)
 
 file <- "e18.footprint.rds"
 path <- file.path(dir.out, file)
@@ -136,7 +114,7 @@ path <- file.path(dir.out, file)
 saveRDS(metacell.reduction, path); rm(path)
 
 # set the number of metacell neighbors to include
-k <- 4 
+k <- 4
 metacell.neighbors <- get.knn(metacell.reduction, k = k)$nn.index
 metacell.neighbors <- cbind(1:nrow(metacell.neighbors), metacell.neighbors)
 
@@ -238,7 +216,7 @@ row.feature <- rep(1:4, each = 2)
 col.feature <- rep(c(3, 6), 4)
 row.pval <- rep(1:4, each = 2)
 col.pval <- rep(c(2, 5), 4)
-object$seurat_clusters <- object$SCT_snn_res.15
+# object$seurat_clusters <- object$SCT_snn_res.15
 pos.x <- c(0.3, 0.2, 0.15, 0.6, 0.4, 0.25, 0.2)
 pos.y <- c(0.6, 0.75, 0.5, 0.65, 0.7, 0.85, 0.15)
 
@@ -266,7 +244,7 @@ for (i in 1:length(genes)) {
   partial.cor <- cor.test(remainX, remainY)$estimate
   partial.cor.pval <- cor.test(remainX, remainY)$p.value
   plot(
-    remainX, 
+    remainX,
     remainY,
 	  xlab = "",
 	  ylab = "",
@@ -274,7 +252,7 @@ for (i in 1:length(genes)) {
 	  cex.lab = cex.lab,
 	  cex.axis = cex.axis,
 	  main = "",
-	  col = wnn.celltype.col, 
+	  col = wnn.celltype.col,
 	  pch = 16,
 	  xaxt = "n",
 	  yaxt = "n",
@@ -283,9 +261,9 @@ for (i in 1:length(genes)) {
   box(lwd = lwd)
   par(mgp = mgp.x)
   axis(
-	side = 1, 
+	side = 1,
 	at = at.x.list[[i]],
-	las = 1, 
+	las = 1,
 	lwd = lwd,
 	lwd.ticks = lwd,
 	tck = -0.02,
@@ -293,9 +271,9 @@ for (i in 1:length(genes)) {
   title(xlab = xlab, line = line.xlab, cex.lab = cex.lab)
   par(mgp = mgp.y)
   axis(
-	  side = 2, 
-	  at = at.y.list[[i]], 
-	  las = 2, 
+	  side = 2,
+	  at = at.y.list[[i]],
+	  las = 2,
 	  lwd = lwd,
 	  lwd.ticks = lwd,
 	  tck = -0.01,
@@ -310,7 +288,7 @@ for (i in 1:length(genes)) {
   mtext(title.str, cex = cex.title2, line = line.title2, adj = 0)
   rm(partial.cor)
   rm(partial.cor.pval)
-  
+
   # cell-type specific p-values
   delta.coeff.pval <- matrix(nrow=length(wnn.celltype), ncol=5)
   Xit <- X.capped
@@ -322,10 +300,10 @@ for (i in 1:length(genes)) {
   rownames(delta.coeff.pval) <- unique(wnn.celltype)
   for(wnn.rm.celltype in unique(wnn.celltype)){
     wnn.rm <- which(wnn.celltype == wnn.rm.celltype)
-    delta.coeff.pval[wnn.rm.celltype, ] <- test.influential(Yig, Xit, Yij, 
+    delta.coeff.pval[wnn.rm.celltype, ] <- test.influential(Yig, Xit, Yij,
     	wnn.rm, plot.histogram = FALSE, nsamp = 1000)
   }
-    
+
   myplots <- list()
   for (j in 1:5){
     d = data.frame(obs = 1:length(unique(wnn.celltype)),
@@ -335,19 +313,19 @@ for (i in 1:length(genes)) {
     d=d[levels(object$celltype),]
     d$obs=1:length(d$obs)
     myplots[[j]] <- ggplot(d, aes(x = obs, y = cd, label = txt, ymin = 0, ymax = cd)) +
-    geom_linerange(colour = unique(wnn.celltype.col)[match(rownames(d), unique(wnn.celltype))]) + 
+    geom_linerange(colour = unique(wnn.celltype.col)[match(rownames(d), unique(wnn.celltype))]) +
     geom_point(shape = 16, colour = unique(wnn.celltype.col)[match(rownames(d), unique(wnn.celltype))]) +
     geom_hline(yintercept = -log(0.01, 10), colour = "black", linetype='dotted')+
     xlab("Cell types") + ylab("-log(p-value)") +
-    ggtitle("") +  #	ggtitle(paste0("Cell-type-specific p-values for ", colnames(delta.coeff.pval)[j])) + 
-    geom_text(size = 4, family = "Helvetica", 
+    ggtitle("") +  #	ggtitle(paste0("Cell-type-specific p-values for ", colnames(delta.coeff.pval)[j])) +
+    geom_text(size = 4, family = "Helvetica",
     	colour = unique(wnn.celltype.col)[match(rownames(d), unique(wnn.celltype))], na.rm = TRUE) +
     theme(
     	axis.text = element_text(size = 14),
       axis.title = element_text(size = 14, face = "plain"))
   }
-  p3 <- myplots[[5]] 
-  
+  p3 <- myplots[[5]]
+
   plot.new()
   if (i == 1) {
     vps <- baseViewports()
@@ -357,25 +335,25 @@ for (i in 1:length(genes)) {
   pushViewport(viewport(layout.pos.row = row.pval[i], layout.pos.col = col.pval[i]))
   print(p3, vp = vp1)
   popViewport()
-  
+
   # meta-cell sampling
   delta.coeff.pval <- matrix(nrow=length(wnn.celltype), ncol=5)
   Xit <- X.capped
   Yij <- Y.TF.capped
   Yig<- Y.capped
-  # colnames(delta.coeff.pval) <- c("(Intercept)", "Xit", "Yij", "Xit:Yij",  "Yig") 
+  # colnames(delta.coeff.pval) <- c("(Intercept)", "Xit", "Yij", "Xit:Yij",  "Yig")
   rownames(delta.coeff.pval) <- names(wnn.celltype)
   for (j in 1:length(wnn.celltype)) {
     wnn.rm <- metacell.neighbors[j, ]
-    delta.coeff.pval[j, ] <- test.influential(Yig, Xit, Yij, wnn.rm, 
+    delta.coeff.pval[j, ] <- test.influential(Yig, Xit, Yij, wnn.rm,
     	plot.histogram = FALSE, nsamp = 1000)
   }
 
   object$wnn.samp.logpval <- -log(delta.coeff.pval[object$seurat_clusters, 5], 10)
   p.feature <- FeaturePlot(
-      object = object, 
+      object = object,
       features = "wnn.samp.logpval",
-      reduction = reduction, 
+      reduction = reduction,
       label = FALSE,
   	  order = TRUE,
       label.size = 2) +

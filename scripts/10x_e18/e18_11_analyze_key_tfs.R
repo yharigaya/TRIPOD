@@ -1,13 +1,14 @@
 # set directories
-dir.in <- "data"
-dir.out <- "output"
+dir.in <- "source_data"
+dir.out <- "derived_data"
 dir.fig <- "figures"
 dir.r <- "functions"
 dir.david <- "david"
 
 # load packages
-library(Seurat)
-library(Signac)
+# library(Seurat)
+# library(Signac)
+library(GenomicRanges)
 library(TFBSTools)
 library(JASPAR2020)
 library(BSgenome.Mmusculus.UCSC.mm10)
@@ -52,19 +53,20 @@ hit.list <- hit.list[-(1:4)]
 tfs.glio <- c("Olig2", "Sox10", "Nkx2-2", "Sox9", "Nfia", "Ascl1")
 
 # extract Neurog2, Eomes, and Tbr1 data
-chip.gr.list <- chip.gr.list[5:7]
+chip.gr.list <- chip.gr.list[match(c("neurog2", "eomes", "tbr1"), names(chip.gr.list))]
+
 TF.names <- c("Neurog2", "Eomes", "Tbr1")
 
 ol.list <- list()
 for (i in 1:length(tfs.glio)) {
-	gene.name <- tfs.glio[i]
+    gene.name <- tfs.glio[i]
 	xymats <- xymats.list[[gene.name]]
 	vicinity.size <- c(2e5, 2e5)
 	peak.gr.g <- xymats$peak.gr.g
 	peakxmotif.g <- xymats$peakxmotif.g
 	ol.matrix <- matrix(data = NA, nrow = length(peak.gr.g), ncol = length(chip.gr.list))
-	for (j in 1:length(chip.gr.list)) {
-		TF.name <- TF.names[j]
+    for (j in 1:length(chip.gr.list)) {
+        TF.name <- TF.names[j]
     chip.gr <- chip.gr.list[[j]]
     motif.list <- getMotifSites(
 	    gene.name = gene.name,
@@ -77,15 +79,14 @@ for (i in 1:length(tfs.glio)) {
     motif.gr <- motif.list$sites
     vicinity.gr <- motif.list$vicinity
     intersect.gr <- GenomicRanges::intersect(chip.gr, motif.gr, ignore.strand = TRUE)
-    ol <- as.numeric(overlapsAny(peak.gr.g, intersect.gr))
-    ol.matrix[, j] <- ol
-	}
+    ol <- as.numeric(overlapsAny(peak.gr.g, intersect.gr, ignore.strand = TRUE))
+                ol.matrix[, j] <- ol
+    }
 	colnames(ol.matrix) <- TF.names
 	rownames(ol.matrix) <- rownames(peakxmotif.g)
 	ol.list[[i]] <- ol.matrix
 }
 names(ol.list) <- tfs.glio
-sapply(ol.list, colSums)
 
 file <- "crosstalk.ol.list.rds"
 path <- file.path(dir.out, file)
@@ -124,7 +125,7 @@ selected.list <- lapply(selected.list, function(x) x[, c(1, 4, 2, 5, 3, 6), drop
 selected.list <- selected.list[sapply(selected.list, function(x) nrow(x) > 0)]
 validated.list <- lapply(
 	selected.list,
-	function(x) x[x[, 1] * x[, 2] == 1 | x[, 3] * x[, 4] == 1 | x[, 5] * x[, 6] == 1, , 
+	function(x) x[x[, 1] * x[, 2] == 1 | x[, 3] * x[, 4] == 1 | x[, 5] * x[, 6] == 1, ,
 		drop = FALSE]
 )
 validated.list <- validated.list[sapply(validated.list, function(x) sum(x) > 0)]

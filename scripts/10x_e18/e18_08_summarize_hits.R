@@ -3,8 +3,8 @@ library(BiocParallel)
 library(GenomicRanges)
 
 # set directories
-dir.in <- "data"
-dir.out <- "output"
+dir.in <- "source_data"
+dir.out <- "derived_data"
 dir.fig <- "figures"
 dir.r <- "functions"
 
@@ -20,7 +20,7 @@ xymats.list <- readRDS(path); rm(path)
 
 files <- list.files(dir.out, pattern = "[.]0[.]01[.]csv$", full.names = TRUE)
 files <- c(files[grep("linkpeaks", files)], files[grep("xymats", files)])
-names <- gsub("output/", "", gsub("[.]0[.]01[.]csv$", "", files))
+names <- gsub(paste0(dir.out, "/"), "", gsub("[.]0[.]01[.]csv$", "", files))
 names <- gsub("xymats", "m", names)
 hit.list <- lapply(files, read.csv)
 names(hit.list) <- names
@@ -58,22 +58,22 @@ cols <- ggColorHue(n)
 # compare the number of trios
 trio.string.list <- bplapply(
 	X = hit.list[-(1:6)],
-	FUN = function(x) unique(apply(x, 1, convertTrioToString, 
+	FUN = function(x) unique(apply(x, 1, convertTrioToString,
 		col.1 = 1, col.2 = 4, col.3 = 5))
 )
 
 # take the union
-trio.string.list$m5X.union.pos <- with(trio.string.list, 
+trio.string.list$m5X.union.pos <- with(trio.string.list,
 	union(m5X.beta.pos, m5X.gamma.pos))
-trio.string.list$m5X.union.neg <- with(trio.string.list, 
+trio.string.list$m5X.union.neg <- with(trio.string.list,
 	union(m5X.beta.neg, m5X.gamma.neg))
-trio.string.list$m5Y.union.pos <- with(trio.string.list, 
+trio.string.list$m5Y.union.pos <- with(trio.string.list,
 	union(m5Y.alpha.pos, m5Y.gamma.pos))
-trio.string.list$m5Y.union.neg <- with(trio.string.list, 
+trio.string.list$m5Y.union.neg <- with(trio.string.list,
 	union(m5Y.alpha.neg, m5Y.gamma.neg))
-trio.string.list$m5.union.pos <- with(trio.string.list, 
+trio.string.list$m5.union.pos <- with(trio.string.list,
 	union(m5X.union.pos, m5Y.union.pos))
-trio.string.list$m5.union.neg <- with(trio.string.list, 
+trio.string.list$m5.union.neg <- with(trio.string.list,
 	union(m5X.union.neg, m5Y.union.neg))
 
 file <- "trio.string.list.0.01.rds"
@@ -98,17 +98,17 @@ peak.string.list3 <- bplapply(
 peak.string.list <- c(peak.string.list1, peak.string.list2, peak.string.list3)
 
 # take the union
-peak.string.list$m5X.union.pos <- with(peak.string.list, 
+peak.string.list$m5X.union.pos <- with(peak.string.list,
 	union(m5X.beta.pos, m5X.gamma.pos))
-peak.string.list$m5X.union.neg <- with(peak.string.list, 
+peak.string.list$m5X.union.neg <- with(peak.string.list,
 	union(m5X.beta.neg, m5X.gamma.neg))
-peak.string.list$m5Y.union.pos <- with(peak.string.list, 
+peak.string.list$m5Y.union.pos <- with(peak.string.list,
 	union(m5Y.alpha.pos, m5Y.gamma.pos))
-peak.string.list$m5Y.union.neg <- with(peak.string.list, 
+peak.string.list$m5Y.union.neg <- with(peak.string.list,
 	union(m5Y.alpha.neg, m5Y.gamma.neg))
-peak.string.list$m5.union.pos <- with(peak.string.list, 
+peak.string.list$m5.union.pos <- with(peak.string.list,
 	union(m5X.union.pos, m5Y.union.pos))
-peak.string.list$m5.union.neg <- with(peak.string.list, 
+peak.string.list$m5.union.neg <- with(peak.string.list,
 	union(m5X.union.neg, m5Y.union.neg))
 
 file <- "peak.string.list.0.01.rds"
@@ -129,17 +129,17 @@ TF.string.list2 <- bplapply(
 TF.string.list <- c(TF.string.list1, TF.string.list2)
 
 # take the union
-TF.string.list$m5X.union.pos <- with(TF.string.list, 
+TF.string.list$m5X.union.pos <- with(TF.string.list,
 	union(m5X.beta.pos, m5X.gamma.pos))
-TF.string.list$m5X.union.neg <- with(TF.string.list, 
+TF.string.list$m5X.union.neg <- with(TF.string.list,
 	union(m5X.beta.neg, m5X.gamma.neg))
-TF.string.list$m5Y.union.pos <- with(TF.string.list, 
+TF.string.list$m5Y.union.pos <- with(TF.string.list,
 	union(m5Y.alpha.pos, m5Y.gamma.pos))
-TF.string.list$m5Y.union.neg <- with(TF.string.list, 
+TF.string.list$m5Y.union.neg <- with(TF.string.list,
 	union(m5Y.alpha.neg, m5Y.gamma.neg))
-TF.string.list$m5.union.pos <- with(TF.string.list, 
+TF.string.list$m5.union.pos <- with(TF.string.list,
 	union(m5X.union.pos, m5Y.union.pos))
-TF.string.list$m5.union.neg <- with(TF.string.list, 
+TF.string.list$m5.union.neg <- with(TF.string.list,
 	union(m5X.union.neg, m5Y.union.neg))
 
 file <- "TF.string.list.0.01.rds"
@@ -185,16 +185,16 @@ model.names <- c(
 	"Marginal (Yg ~ Xt)",
 	"Marginal (Yg ~ Yj)",
 	"Interaction",
-	"TRIPOD conditional matching Xt", 
+	"TRIPOD conditional matching Xt",
 	"TRIPOD interaction matching Xt",
-	"TRIPOD conditional matching Yj", 
+	"TRIPOD conditional matching Yj",
 	"TRIPOD interaction matching Yj",
   "TRIPOD union"
 )
 
 titles <- c(
-	paste0("Trio\n(n = ", tot.trio, ")"), 
-	paste0("Peak-gene pair\n(n = ", tot.peak.gene, ")"), 
+	paste0("Trio\n(n = ", tot.trio, ")"),
+	paste0("Peak-gene pair\n(n = ", tot.peak.gene, ")"),
 	paste0("TF-gene pair\n(n = ", tot.TF.gene, ")")
 )
 
@@ -240,7 +240,7 @@ for (i in 2:length(matrix.list)) {
   box()
   mtext(titles[i], cex = 0.75, line = 0.3)
 }
-legend(x = 10000, y = 28, 
+legend(x = 10000, y = 28,
 	legend = c("Positive", "Negative"),
 	fill = rev(cols),
 	bty = "n",

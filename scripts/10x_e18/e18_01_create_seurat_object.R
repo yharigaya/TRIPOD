@@ -10,12 +10,12 @@ library(patchwork)
 library(biovizBase)
 
 # set/create directories
-dir.in <- "data"
-if (!dir.exists(data.in)) dir.create(data.in)
-dir.out <- "output"
-if (!dir.exists(data.out)) dir.create(data.out)
+dir.in <- "source_data"
+if (!dir.exists(dir.in)) dir.create(data.in)
+dir.out <- "derived_data"
+if (!dir.exists(dir.out)) dir.create(data.out)
 dir.fig <- "figures"
-if (!dir.exists(data.fig)) dir.create(data.fig)
+if (!dir.exists(dir.fig)) dir.create(data.fig)
 dir.r <- "functions"
 
 # download data into the data directory
@@ -62,7 +62,10 @@ chrom.assay <- CreateChromatinAssay(
 e18[["ATAC"]] <- chrom.assay
 
 # load cell type labels
-data(label.savercat)
+# data(label.savercat)
+file <- "label.savercat.rda"
+path <- file.path(dir.in, file)
+load(path); rm(path)
 e18$label.savercat <- label.savercat
 
 # perform RNA analysis
@@ -91,13 +94,13 @@ e18 <- RunUMAP(e18, nn.name = "weighted.nn",
 file <- "umap_rna_atac_before_qc.pdf"
 path <- file.path(dir.fig, file)
 pdf(path, width = 12, height = 6); rm(path)
-p1 <- DimPlot(e18, reduction = "umap.rna",  group.by = "label.savercat", 
+p1 <- DimPlot(e18, reduction = "umap.rna",  group.by = "label.savercat",
 	label = TRUE, label.size = 2.5, repel = TRUE) +
 	ggtitle("RNA")
-p2 <- DimPlot(e18, reduction = "umap.atac",  group.by = "label.savercat", 
+p2 <- DimPlot(e18, reduction = "umap.atac",  group.by = "label.savercat",
 	label = TRUE, label.size = 2.5, repel = TRUE) +
 	ggtitle("ATAC")
-p3 <- DimPlot(e18, reduction = "wnn.umap", group.by = "label.savercat", 
+p3 <- DimPlot(e18, reduction = "wnn.umap", group.by = "label.savercat",
 	label = TRUE, label.size = 2.5, repel = TRUE) +
 	ggtitle("WNN")
 p1 + p2 + p3 & NoLegend() & theme(plot.title = element_text(hjust = 0.5))
@@ -140,13 +143,13 @@ e18 <- subset(
 file <- "umap_rna_atac_after_qc.pdf"
 path <- file.path(dir.fig, file)
 pdf(path, width = 12, height = 6); rm(path)
-p1 <- DimPlot(e18, reduction = "umap.rna", group.by = "celltype", 
+p1 <- DimPlot(e18, reduction = "umap.rna", group.by = "celltype",
 	label = TRUE, label.size = 2.5, repel = TRUE) +
 	ggtitle("RNA")
-p2 <- DimPlot(e18, reduction = "umap.atac", group.by = "celltype",  
+p2 <- DimPlot(e18, reduction = "umap.atac", group.by = "celltype",
 	label = TRUE, label.size = 2.5, repel = TRUE) +
 	ggtitle("ATAC")
-p3 <- DimPlot(e18, reduction = "wnn.umap", group.by = "celltype", 
+p3 <- DimPlot(e18, reduction = "wnn.umap", group.by = "celltype",
 	label = TRUE, label.size = 2.5, repel = TRUE) +
 	ggtitle("WNN")
 p1 + p2 + p3 & NoLegend() & theme(plot.title = element_text(hjust = 0.5))

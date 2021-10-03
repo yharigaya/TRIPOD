@@ -14,8 +14,8 @@ library(motifmatchr)
 library(BSgenome.Mmusculus.UCSC.mm10)
 
 # set directories
-dir.in <- "data"
-dir.out <- "output"
+dir.in <- "source_data"
+dir.out <- "derived_data"
 dir.fig <- "figures"
 dir.r <- "functions"
 
@@ -61,7 +61,7 @@ motif.matrix <- CreateMotifMatrix(
 )
 
 motif.object <- CreateMotifObject(data = motif.matrix, pwm = pfm.set)
-e18 <- SetAssayData(e18, assay = "ATAC", slot = "motifs", 
+e18 <- SetAssayData(e18, assay = "ATAC", slot = "motifs",
 	new.data = motif.object)
 e18 <- RunChromVAR(
   object = e18,

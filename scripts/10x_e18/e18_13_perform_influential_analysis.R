@@ -1,41 +1,8 @@
 # set directories
-dir.in <- "data"
-dir.out <- "output"
+dir.in <- "sourcedata"
+dir.out <- "derived_data"
 dir.fig <- "figures"
 dir.r <- "functions"
-
-# load packages
-# library(Seurat)
-# library(Signac)
-# library(EnsDb.Mmusculus.v79)
-# library(GenomeInfoDb)
-# library(dplyr)
-# library(ggplot2)
-# library(presto)
-
-# library(chromVAR)
-# library(JASPAR2020)
-# library(TFBSTools)
-# library(motifmatchr)
-# library(BSgenome.Mmusculus.UCSC.mm10)
-
-# library(glmnet)
-# library(pheatmap)
-# library(fields)
-# library(qvalue)
-# library(gplots)
-# library(patchwork)
-# library(olsrr)
-# library(pdftools)
-# library(ape)
-# library(dendextend)
-# library(gplots)
-# library(nbpMatching)
-# library(fields)
-# library(RColorBrewer)
-# library(gridBase)
-# library(grid)
-# library(FNN)
 
 # source functions
 scripts <- list.files(dir.r, full.names = T, pattern = ".R$")
@@ -81,21 +48,21 @@ file <- "xymats.list.rds"
 path <- file.path(dir.out, file)
 xymats.list <- readRDS(path); rm(path)
 
-file <- "metacell.celltype.rds" 
+file <- "metacell.celltype.rds"
 path <- file.path(dir.out, file)
 wnn.celltype <- readRDS(path); rm(path)
 
-file <- "metacell.celltype.rds"
+file <- "metacell.celltype.col.rds"
 path <- file.path(dir.out, file)
 wnn.celltype.col <- readRDS(path); rm(path)
 
 file <- "color.map.rds"
 path <- file.path(dir.out, file)
-col.map <- readRDS(path); rm(path)	
+col.map <- readRDS(path); rm(path)
 
-file <- "e18.metacell.rds"
-path <- file.path(dir.out, file)
-e18 <- readRDS(path); rm(path)
+# file <- "e18.metacell.rds"
+# path <- file.path(dir.out, file)
+# e18 <- readRDS(path); rm(path)
 
 ### perform influential analysis ###
 
@@ -104,24 +71,38 @@ tfs.neuro <- c("Pax6", "Neurog2", "Eomes", "Neurod1", "Tbr1")
 tfs.glio <- c("Olig2", "Sox10", "Nkx2-2", "Sox9", "Nfia", "Ascl1")
 tfs <- c(tfs.neuro, tfs.glio)
 
+names(hit.list)
+
 # focus on model 4 (interaction) hits
-df <- hit.list$xymats4.gamma.pos
+df <- hit.list$m4.gamma.pos
 df <- df[df$TF %in% tfs, ]
 
 celltype.pvals <- t(apply(
-  X = df, 
-  MARGIN = 1, 
+  X = df,
+  MARGIN = 1,
   FUN = getPvalueforCellTypes,
   xymats.list = xymats.list,
   wnn.celltype = wnn.celltype)
 )
+
+# create a col.map object
+# celltypes <- levels(e18$celltype)
+# col.map <- data.frame(celltype = wnn.celltype, color = wnn.celltype.col)
+# col.map <- unique(col.map)
+# rownames(col.map) <- col.map$celltype
+# col.map <- col.map[celltypes, ]
+# rownames(col.map) <- NULL
+# file <- "color.map.rds"
+# path <- file.path(dir.out, file)
+# saveRDS(col.map, path); rm(path)
+
 # order the columns
 tmp <- celltype.pvals[, col.map$celltype]
-celltype.pvals <- tmp 
+celltype.pvals <- tmp; rm(tmp)
 df <- cbind(df, celltype.pvals)
-file <- "influential.celltype.pvals.rds"
-path <- file.path(dir.out, file)
-saveRDS(df, path); rm(path)
+# file <- "influential.celltype.pvals.rds"
+# path <- file.path(dir.out, file)
+# saveRDS(df, path); rm(path)
 
 # celltype.pvals <- df[, -(1:6)]
 celltype.adj <- t(apply(celltype.pvals, 1, p.adjust, method = "bonferroni"))
@@ -133,8 +114,8 @@ saveRDS(df, path); rm(path)
 
 fdr.thresh <- 0.01
 # tmp <- apply(celltype.adj, 1, function(x) sum(any(x < fdr.thresh)))
-tmp <- apply(df[, 16:22], 1, function(x) sum(any(x < fdr.thresh)))
-df$sig <- tmp
+tmp <- apply(df[, grep("^adj_", colnames(df))], 1, function(x) sum(any(x < fdr.thresh)))
+df$sig <- tmp; rm(tmp)
 
 # create a list of data frames for individual TFs
 df$TF <- factor(df$TF, levels = tfs)
@@ -227,7 +208,7 @@ for (i in 2:ncol(num.sig)) {
   box()
   mtext(titles[i], cex = 0.75, line = 0.3)
 }
-# legend(x = 10000, y = 34, 
+# legend(x = 10000, y = 34,
 # 	legend = c("Positive", "Negative"),
 # 	fill = rev(cols),
 # 	bty = "n",

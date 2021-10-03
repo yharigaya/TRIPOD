@@ -3,8 +3,8 @@ library(Seurat)
 library(Signac)
 
 # set directories
-dir.in <- "data"
-dir.out <- "output"
+dir.in <- "source_data"
+dir.out <- "derived_data"
 dir.fig <- "figures"
 dir.r <- "functions"
 
@@ -23,17 +23,24 @@ DefaultAssay(e18) <- "SCT"
 e18 <- FindNeighbors(e18, reduction = "pca", dims = 1:30)
 
 # optimize clustering resolution
-num.clusters <- optimizeResolution(
-	object = e18,
-	graph.name = "SCT_snn",
-	assay.name = "SCT",
-	resolutions = seq(10, 35, 5),
-	min.num = 20
-)
+resolutions <- seq(10, 35, 5)
+num.clusters <- rep(NA, length(resolutions))
+for (i in 1:length(resolutions)){
+  res <- resolutions[i]
+  e18 <- FindClusters(e18, resolution = res, verbose = F)
+  snn.name <- paste("SCT_snn_res.", res, sep="")
+  num.clusters[i] <- length(levels(e18@meta.data[[snn.name]]))
+}
+snn.names <- paste("SCT_snn_res.", resolutions, sep = "")
+min.cells <- sapply(snn.names, function(x) min(table(e18@meta.data[[x]])))
+num.cluster.df <- data.frame(resolution = resolutions,
+                             num_clusters = num.clusters,
+                             min_cells = min.cells)
+
 # write the result to a csv file
 file <- "num_clusters.csv"
 path <- file.path(dir.out, file)
-write.csv(num.clusters, path); rm(path)
+write.csv(num.cluster.df, path); rm(path)
 
 res <- 15
 e18 <- FindClusters(e18, graph.name = "SCT_snn",
@@ -55,7 +62,7 @@ colnames(metacell.rna) <- rownames(e18@assays$RNA)
 for(i in 1:nrow(metacell.rna)){
   metacell.rna[i,] <- apply(e18@assays$RNA@counts[, e18$seurat_clusters == (i-1)], 1, sum)
   # adjust for library size for each metacell
-  metacell.rna[i,] <- metacell.rna[i,]/sum(metacell.rna[i,])*10^6 
+  metacell.rna[i,] <- metacell.rna[i,]/sum(metacell.rna[i,])*10^6
 }
 
 metacell.peak <- matrix(nrow = length(levels(e18$seurat_clusters)),
@@ -91,31 +98,44 @@ path <- file.path(dir.out, file)
 saveRDS(e18, path); rm(path)
 
 # assigning cell types and colors for visualization
-metacell.celltype <- getCellTypeForMetacell(e18,
-	celltype.col.name = "celltype", cluster.col.name = "seurat_clusters")
-sc.color.map <- getColorsForSingleCells(
-	object = e18, reduction = "umap.rna", celltype.col.name = "celltype")
-metacell.color.map <- getColorsForMetacells(
-	metacell.celltype = metacell.celltype, sc.color.map = sc.color.map)
-color.map <- getColors(ordered.celltypes = levels(e18$celltype),
-	metacell.color.map = metacell.color.map)
+temp <- table(e18$celltype, e18$seurat_clusters)
+metacell.celltype <- rep(NA, nrow(metacell.rna))
+for(i in 1:length(metacell.celltype)){
+  temp.i_1 <- temp[, colnames(temp) == as.character(i-1)]
+  metacell.celltype[i] <- names(temp.i_1)[which.max(temp.i_1)]
+}
 
-file <- "sc.color.map.rds"
-path <- file.path(dir.out, file)
-saveRDS(sc.color.map, path); rm(path)
+# get the corresponding color for each cell type from Seurat
+p <- Seurat::DimPlot(e18, reduction = "umap.rna", label = TRUE, group.by = "celltype")
+pbuild <- ggplot2::ggplot_build(p) # use ggplot_build to deconstruct the ggplot object
+pdata <- pbuild$data[[1]] # this is to get the color palette by Seurat
+pdata <- cbind(e18$celltype, pdata)
 
-file <- "metacell.color.map.rds"
+metacell.celltype.col <- rep(NA, length(metacell.celltype))
+for(i in 1:length(metacell.celltype)){
+  metacell.celltype.col[i] <- pdata$colour[min(which(pdata$`e18$celltype` == metacell.celltype[i]))]
+}
+
+file <- "metacell.celltype.rds"
 path <- file.path(dir.out, file)
-saveRDS(metacell.color.map, path); rm(path)
+saveRDS(metacell.celltype, path); rm(path)
+
+file <- "metacell.celltype.col.rds"
+path <- file.path(dir.out, file)
+saveRDS(metacell.celltype.col, path); rm(path)
+
+col.map <- data.frame(celltype = metacell.celltype, color = metacell.celltype.col)
+col.map <- unique(col.map)
+rownames(col.map) <- col.map$celltype
+col.map <- col.map[levels(e18$seurat_clusters), ]
+rownames(col.map) <- NULL
 
 file <- "color.map.rds"
 path <- file.path(dir.out, file)
-saveRDS(color.map, path); rm(path)
+saveRDS(col.map, path); rm(path)
 
 # obtain top 3000 highly variable genes based on SCT
 DefaultAssay(e18) <- "SCT"
-head(VariableFeatures(e18))
-length(VariableFeatures(e18))
 hvg <- VariableFeatures(e18)
 
 file <- "hvg.rds"

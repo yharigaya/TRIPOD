@@ -33,7 +33,7 @@ tfs <- c(tfs.neuro, tfs.glio)
 # get the number of target genes for all TFs and all models
 # get lists of target genes for all TFs and all models
 gene.list.list <- lapply(
-	X = hit.list, 
+	X = hit.list,
 	FUN = function(x) lapply(
 		X = tfs,
 		FUN = function(y) unique(x$gene[x$TF == y])))
@@ -78,7 +78,7 @@ names <- list.files(dir.david, pattern = ".txt")
 names <- gsub(".txt", "", names)
 david.union.list <- lapply(files, read.delim, header = TRUE)
 names(david.union.list) <- names
-sig.union.list <- lapply(david.union.list, 
+sig.union.list <- lapply(david.union.list,
 	function(x) x[x$FDR < fdr.thresh, c("Term", "Count", "FDR")])
 
 file <- "david.sig.union.list.pos.rds"
@@ -113,29 +113,29 @@ sorted.table[sorted.table >= 5]
 selected.terms <- c(
   "GO:0006357~regulation of transcription from RNA polymerase II promoter",
   "GO:0045944~positive regulation of transcription from RNA polymerase II promoter",
-  "GO:0000122~negative regulation of transcription from RNA polymerase II promoter", 
+  "GO:0000122~negative regulation of transcription from RNA polymerase II promoter",
   "GO:0048663~neuron fate commitment",
   "GO:0050767~regulation of neurogenesis",
-  "GO:0030182~neuron differentiation", 
-  "GO:0021915~neural tube development", 
-  "GO:0021861~forebrain radial glial cell differentiation", 
-  "GO:0030900~forebrain development", 
-  "GO:0048708~astrocyte differentiation", 
-  "GO:0048709~oligodendrocyte differentiation", 
-  "GO:0001755~neural crest cell migration", 
-  "GO:0008285~negative regulation of cell proliferation", 
-  "GO:0045665~negative regulation of neuron differentiation", 
-  "GO:0035019~somatic stem cell population maintenance", 
-  "GO:0002052~positive regulation of neuroblast proliferation", 
-  "GO:0007049~cell cycle", 
-  "GO:0051301~cell division", 
+  "GO:0030182~neuron differentiation",
+  "GO:0021915~neural tube development",
+  "GO:0021861~forebrain radial glial cell differentiation",
+  "GO:0030900~forebrain development",
+  "GO:0048708~astrocyte differentiation",
+  "GO:0048709~oligodendrocyte differentiation",
+  "GO:0001755~neural crest cell migration",
+  "GO:0008285~negative regulation of cell proliferation",
+  "GO:0045665~negative regulation of neuron differentiation",
+  "GO:0035019~somatic stem cell population maintenance",
+  "GO:0002052~positive regulation of neuroblast proliferation",
+  "GO:0007049~cell cycle",
+  "GO:0051301~cell division",
   "GO:0008284~positive regulation of cell proliferation"
 )
 
-merged <- merge(selected.terms, 
+merged <- merge(selected.terms,
 	david.union.list[[1]][, c("Term", "Count", "FDR")], by = 1, all.x = TRUE)
 for (i in 2:length(david.union.list)) {
-  merged <- merge(merged, david.union.list[[i]][, c("Term", "Count", "FDR")], 
+  merged <- merge(merged, david.union.list[[i]][, c("Term", "Count", "FDR")],
   	by = 1, all.x = TRUE)
 }
 rownames(merged) <- merged[, 1]
@@ -166,7 +166,7 @@ labels.row <- sapply(rownames(log.fdr), function(x) unlist(strsplit(x, "~"))[2])
 names(labels.row) <- NULL
 
 v <- c(log.fdr)
-number.color <- rep("gray10", length(v)) 
+number.color <- rep("gray10", length(v))
 number.color[v > 8] <- "gray90"
 
 file <- "david_log_fdr_union_no_legend.pdf"
@@ -216,7 +216,7 @@ labels.row <- sapply(rownames(log.fdr[simple.terms, ]), function(x) unlist(strsp
 names(labels.row) <- NULL
 
 v <- c(log.fdr[simple.terms, ])
-number.color <- rep("gray10", length(v)) 
+number.color <- rep("gray10", length(v))
 number.color[v > 8] <- "gray90"
 
 file <- "david_log_fdr_union_simple_no_legend.pdf"

@@ -9,8 +9,8 @@ library(GenomeInfoDb)
 library(patchwork)
 
 # set directories
-dir.in <- "data"
-dir.out <- "output"
+dir.in <- "source_data"
+dir.out <- "derived_data"
 dir.fig <- "figures"
 dir.r <- "functions"
 
@@ -28,7 +28,7 @@ e18 <- readRDS(path); rm(path)
 DefaultAssay(e18) <- "ATAC"
 transcripts.gr <- Signac:::CollapseToLongestTranscript(ranges = Annotation(e18))
 transcripts.gr <- transcripts.gr[transcripts.gr$gene_biotype == "protein_coding"]
-transcripts.gr <- transcripts.gr[seqnames(transcripts.gr) %in% 
+transcripts.gr <- transcripts.gr[seqnames(transcripts.gr) %in%
 		paste0("chr", 1:19)]
 transcripts.gr <- sort(transcripts.gr)
 
@@ -38,7 +38,7 @@ motifxTF <- unlist(e18@assays$ATAC@motifs@motif.names)
 motifxTF <- cbind(names(motifxTF), motifxTF)
 colnames(motifxTF) <- c("motif", "TF")
 
-peakxmotif <- e18@assays$ATAC@motifs@data 
+peakxmotif <- e18@assays$ATAC@motifs@data
 
 motifxTF[, 2] <- stringr::str_to_title(tolower(motifxTF[, 2]))
 
@@ -47,9 +47,9 @@ motifxTF <- motifxTF[motifxTF[, 2] %in% rownames(e18@assays$RNA), ]
 
 genes <- intersect(transcripts.gr$gene_name, rownames(e18@assays$SCT))
 DefaultAssay(e18) <- "RNA"
-e18@assays$RNA <- subset(e18@assays$RNA, 
+e18@assays$RNA <- subset(e18@assays$RNA,
 	features = match(genes, rownames(e18@assays$RNA)))
-e18@assays$SCT <- subset(e18@assays$SCT, 
+e18@assays$SCT <- subset(e18@assays$SCT,
 	features = match(genes, rownames(e18@assays$SCT)))
 transcripts.gr <- transcripts.gr[match(genes, transcripts.gr$gene_name)]
 peakxmotif <- peakxmotif[, motifxTF[, 2] %in% genes]
@@ -78,7 +78,7 @@ saveRDS(peakxmotif, path); rm(path)
 DefaultAssay(e18) <- "RNA"
 e18 <- SCTransform(e18, verbose = FALSE)
 e18 <- RunPCA(e18)
-e18	<- RunUMAP(e18, reduction = "pca", dims = 1:50, 
+e18	<- RunUMAP(e18, reduction = "pca", dims = 1:50,
 	reduction.name = "umap.rna", reduction.key = "rnaUMAP_")
 
 # perform ATAC analysis again
@@ -86,26 +86,26 @@ DefaultAssay(e18) <- "ATAC"
 e18 <- RunTFIDF(e18)
 e18 <- FindTopFeatures(e18, min.cutoff = "q0")
 e18 <- RunSVD(e18)
-e18 <- RunUMAP(e18, reduction = "lsi", dims = 2:50, 
+e18 <- RunUMAP(e18, reduction = "lsi", dims = 2:50,
 	reduction.name = "umap.atac", reduction.key = "atacUMAP_")
 
 # recalculate a WNN graph
-e18 <- FindMultiModalNeighbors(e18, reduction.list = list("pca", "lsi"), 
+e18 <- FindMultiModalNeighbors(e18, reduction.list = list("pca", "lsi"),
 	dims.list = list(1:50, 2:50))
-e18 <- RunUMAP(e18, nn.name = "weighted.nn", 
+e18 <- RunUMAP(e18, nn.name = "weighted.nn",
 	reduction.name = "wnn.umap", reduction.key = "wnnUMAP_")
 
 # generate umap plots for fig 1a and supplementary figure 1x
 file <- "umap_rna_atac_after_re_norm.pdf"
 path <- file.path(dir.fig, file)
 pdf(path, width = 12, height = 6); rm(path)
-p1 <- DimPlot(e18, reduction = "umap.rna",  group.by = "celltype", 
+p1 <- DimPlot(e18, reduction = "umap.rna",  group.by = "celltype",
 	label = TRUE, label.size = 2.5, repel = TRUE) +
 	ggtitle("RNA")
-p2 <- DimPlot(e18, reduction = "umap.atac",  group.by = "celltype", 
+p2 <- DimPlot(e18, reduction = "umap.atac",  group.by = "celltype",
 	label = TRUE, label.size = 2.5, repel = TRUE) +
 	ggtitle("ATAC")
-p3 <- DimPlot(e18, reduction = "wnn.umap", group.by = "celltype", 
+p3 <- DimPlot(e18, reduction = "wnn.umap", group.by = "celltype",
 	label = TRUE, label.size = 2.5, repel = TRUE) +
 	ggtitle("WNN")
 p1 + p2 + p3 & NoLegend() & theme(plot.title = element_text(hjust = 0.5))

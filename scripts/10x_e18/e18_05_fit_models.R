@@ -4,8 +4,8 @@ library(nbpMatching)
 library(BiocParallel)
 
 # set directories
-dir.in <- "data"
-dir.out <- "output"
+dir.in <- "source_data"
+dir.out <- "derived_data"
 dir.fig <- "figures"
 dir.r <- "functions"
 
@@ -44,25 +44,29 @@ path <- file.path(dir.out, file)
 hvg <- readRDS(path); rm(path)
 
 file <- "metacell.celltype.rds"
-path <- file.path(dir.pre, file)
+path <- file.path(dir.out, file)
 wnn.celltype <- readRDS(path); rm(path)
 
 file <- "metacell.celltype.col.rds"
-path <- file.path(dir.pre, file)
+path <- file.path(dir.out, file)
 wnn.celltype.col <- readRDS(path); rm(path)
 
 # get a list of target genes of interest
-# process the data
 tfs.neuro <- c("Pax6", "Neurog2", "Eomes", "Neurod1", "Tbr1")
 tfs.glio <- c("Olig2", "Sox10", "Nkx2-2", "Sox9", "Nfia", "Ascl1")
 genes <- unique(c(hvg[1:1000], tfs.neuro, tfs.glio))
+file <- "genes.rds"
+path <- file.path(dir.out, file)
+saveRDS(genes, path); rm(path)
+
+# set window size
 ext.upstream <- ext.downstream <- 2e5
 
 # get XY matrices
 system.time(
 xymats.list <- bplapply(
-	genes,
-	getXYMatrices,
+  genes,
+  getXYMatrices,
   ext.upstream = ext.upstream,
   transcripts.gr = transcripts.gr,
   peak.gr = peak.gr,
@@ -76,62 +80,62 @@ xymats.list <- bplapply(
 )
 names(xymats.list) <- genes
 file <- "xymats.list.rds"
-path <- file.path(dir.model, file)
+path <- file.path(dir.out, file)
 saveRDS(xymats.list, path); rm(path)
 
 # fit model 1a (marginal)
 system.time(
 xymats1.list <- bplapply(
-	xymats.list,
+  xymats.list,
   fitModel,
-	modelName = "1a"
+  modelName = "1a"
 )
 )
 names(xymats1.list) <- genes
 file <- "xymats1.list.rds"
-path <- file.path(dir.model, file)
+path <- file.path(dir.out, file)
 saveRDS(xymats1.list, path); rm(path)
 
 # fit model 4a (interaction)
 system.time(
 xymats4.list <- bplapply(
-	xymats.list,
+  xymats.list,
   fitModel,
-	modelName = "4a"
+  modelName = "4a"
 )
 )
 names(xymats4.list) <- genes
 file <- "xymats4.list.rds"
-path <- file.path(dir.model, file)
+path <- file.path(dir.out, file)
 saveRDS(xymats4.list, path); rm(path)
 
 # fit model 5a (TRIPOD)
 system.time(
 xymats5X.list <- bplapply(
-	xymats.list,
-	fitModel,
-	modelName = "5a",
-	match.by = "Xt",
-  do.capValues = FALSE,
+  xymats.list,
+  fitModel,
+  modelName = "5a",
+  match.by = "Xt",
+  do.capValues = TRUE,
   VERBOSE = FALSE
 )
 )
 names(xymats5X.list) <- genes
 file <- "xymats5X.list.rds"
-path <- file.path(dir.model, file)
+path <- file.path(dir.out, file)
 saveRDS(xymats5X.list, path); rm(path)
 
 system.time(
 xymats5Y.list <- bplapply(
-	xymats.list,
-	fitModel,
-	modelName = "5a",
-	match.by = "Yj",
-  do.capValues = FALSE,
+  xymats.list,
+  fitModel,
+  modelName = "5a",
+  match.by = "Yj",
+  do.capValues = TRUE,
   VERBOSE = FALSE
 )
 )
 names(xymats5Y.list) <- genes
 file <- "xymats5Y.list.rds"
-path <- file.path(dir.model, file)
+path <- file.path(dir.out, file)
 saveRDS(xymats5Y.list, path); rm(path)
