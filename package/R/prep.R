@@ -136,7 +136,7 @@ getColorsForSingleCells <- function(
 	object, reduction, celltype.col.name
 ) {
 	# get the corresponding color for each cell type from Seurat
-	p <- Seurat::DimPlot(e18, reduction = reduction, label = TRUE,
+	p <- Seurat::DimPlot(object, reduction = reduction, label = TRUE,
 		group.by = celltype.col.name)
   # use ggplot_build to deconstruct the ggplot object
   pbuild <- ggplot2::ggplot_build(p)
