@@ -482,8 +482,8 @@ plotGenePeakTFScatter <- function(
 	if (all(to.plot != c("marginal.Yg.Xt", "marginal.Yg.Yj", "marginal.Yj.Xt",
 		"product", "conditional.on.Yj", "conditional.on.Xt", "interaction", "TRIPOD"))
 	) {
-		stop('The to.plot argument should be set to "marginal.Yg.Xt", "marginal.Yg.Yj", "marginal.Yj.Xt",
-		"product", "conditional.on.Yj", "conditional.on.Xt", "interaction", or "TRIPOD".')
+		stop('The to.plot argument must be one of "marginal.Yg.Xt", "marginal.Yg.Yj", "marginal.Yj.Xt",
+		"product", "conditional.on.Yj", "conditional.on.Xt", "interaction", and "TRIPOD".')
 	}
 	if (to.plot != "TRIPOD" && !is.null(level)){
 	  warning('The level argument is applicable to "TRIPOD" only.')
@@ -496,7 +496,7 @@ plotGenePeakTFScatter <- function(
 	Yg <- xymats$Yg # may or may not need to be capped
 	Xt <- xymats$Xt[, peak.num] # may or may not need to be capped
 	Yj <- xymats$Yj[, TF.num] # may or may not need to be capped
-	if (to.plot != "TRIPOD" & cap.at.quantile > 0) {
+	if (cap.at.quantile > 0) {
     Yg <- capValues(Yg, cap.at.quantile = cap.at.quantile)
     Xt <- capValues(Xt, cap.at.quantile = cap.at.quantile)
     Yj <- capValues(Yj, cap.at.quantile = cap.at.quantile)
