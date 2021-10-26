@@ -7,6 +7,7 @@
 plotInfluenceForNeighbor(
   delta.coeff.pval,
   coefficient,
+  metacell.celltype,
   metacell.celltype.col,
   threshold = 0.05,
   ...
@@ -19,6 +20,8 @@ plotInfluenceForNeighbor(
 This must be one of "Xt", "Yj", and "Xt:Yj".
 If {\code{\link{deleteNeighbor}}} was run with an argument "two.sided",
 this can be set to fitted values, "Yg".}
+
+\item{metacell.celltype}{a character vector specifying cell types of the metacells.}
 
 \item{metacell.celltype.col}{a character vector specifying colors of the metacells
 based on the cell types.}

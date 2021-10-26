@@ -10,6 +10,7 @@ testInfluence(
   Yj,
   alternative,
   metacell.rm,
+  metacell.celltype,
   plot.histogram = FALSE,
   nsamp = 10000,
   seed = 1234,
