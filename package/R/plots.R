@@ -722,7 +722,7 @@ plotGenePeakTFScatter <- function(
       	"Partial residuals dYg on dXt") # "Partial residuals Yg on V"
       xlab <- ifelse(match.by == "Xt", "Partial residuals Xt*dYj on dYj",
       	"Partial residuals Yj*dXt on dXt") # "Partial residuals U*V on V"
-      title <- paste0("TRIPOD matching ", match.by, " level 1:\n",
+      title <- paste0("TRIPOD matching ", match.by, " level 2:\n",
       	"r = ", format(est, digits = 2),
       	", p = ", format(pval, scientific = TRUE, digits = 2))
       plot(remainder2, remainder1, col = "white", pch = 16,
