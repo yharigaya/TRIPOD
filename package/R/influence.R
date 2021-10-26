@@ -78,6 +78,7 @@ deleteNeighbor <- function(Yg, Xt, Yj, alternative,
   for (i in 1:length(metacell.celltype)) {
   	metacell.rm <- metacell.neighbors[i, ]
     delta.coeff.pval[i, ] <- testInfluence(Yg = Yg, Xt = Xt, Yj = Yj,
+    	metacell.celltype = metacell.celltype,
     	metacell.rm = metacell.rm, alternative = alternative,
       plot.histogram = FALSE, nsamp = 1000, seed = seed)
   }
@@ -112,7 +113,7 @@ deleteCellType <- function(Yg, Xt, Yj, metacell.celltype,
   for (metacell.rm.celltype in unique(metacell.celltype)) {
     metacell.rm <- which(metacell.celltype == metacell.rm.celltype)
     delta.coeff.pval[metacell.rm.celltype, ] <- testInfluence(
-    	Yg = Yg, Xt = Xt, Yj = Yj, metacell.rm = metacell.rm,
+    	Yg = Yg, Xt = Xt, Yj = Yj, metacell.rm = metacell.rm, metacell.celltype = metacell.celltype,
     	alternative = alternative, plot.histogram = FALSE, nsamp = 1000, seed = seed)
     }
   return(delta.coeff.pval)
@@ -152,7 +153,7 @@ deleteBranch <- function(Yg, Xt, Yj, dend, alternative,
   for (i in 2:length(subtrees)) {
     metacell.rm <- which(metacell.celltype %in% subtrees[[i]])
     delta.coeff.pval[i, ] <- testInfluence(
-    	Yg = Yg, Xt = Xt, Yj = Yj, metacell.rm = metacell.rm,
+    	Yg = Yg, Xt = Xt, Yj = Yj, metacell.rm = metacell.rm, metacell.celltype = metacell.celltype,
     	alternative = alternative, plot.histogram = FALSE, nsamp = 1000, seed = seed)
   }
   return(delta.coeff.pval)
@@ -228,7 +229,7 @@ getMetacellNeighbor <- function(object, reduction,
 #' @importFrom graphics abline hist par
 #'
 #' @export
-testInfluence <- function(Yg, Xt, Yj, alternative, metacell.rm,
+testInfluence <- function(Yg, Xt, Yj, alternative, metacell.rm, metacell.celltype,
 	plot.histogram = FALSE, nsamp = 10000, seed = 1234, ...) {
 	if (all(alternative != c("two.sided", "greater", "less"))) {
 		stop('The alternative argument must be one of "two.sided", "greater", and "less".')
