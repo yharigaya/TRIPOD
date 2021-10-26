@@ -75,7 +75,7 @@ plotDFFIT <- function(d.list, metacell.celltype.col, ...) {
 #'
 #' @import ggplot2
 #' @export
-plotInfluenceForNeighbor <- function(delta.coeff.pval, coefficient,
+plotInfluenceForNeighbor <- function(delta.coeff.pval, coefficient, metacell.celltype,
 	metacell.celltype.col, threshold = 0.05, ...) {
 	items <- c("Xt", "Yj", "Xt:Yj", "Yg")
 	if (all(coefficient != items)) {
