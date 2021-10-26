@@ -363,7 +363,7 @@ plotGenePeakTFUMAP <- function(object, gene.name, peak.name, TF.name,
     	axis.title = element_text(size = size.axis))
   p3 <- FeaturePlot(object, features = paste0("sct_", TF.name),
   	reduction = reduction, label = label, label.size = 2,
-  	col = c("lightgrey", "darkred"), ...) +
+  	cols = c("lightgrey", "darkred"), ...) +
   	ggtitle("TF expression") +
     theme(plot.title = element_text(size = size.title, face = "plain"),
     	axis.title = element_text(size = size.axis))
