@@ -197,7 +197,7 @@ fitModel <- function(xymats, model.name, match.by = NULL, log = NULL,
     }
   }
 	# cap values
-	if (model.name != "TRIPOD" & cap.at.quantile > 0) {
+	if (cap.at.quantile > 0) {
     xymats$Yg <- capValues(xymats$Yg, cap.at.quantile = cap.at.quantile)
     xymats$Xt <- apply(xymats$Xt, 2, capValues, cap.at.quantile = cap.at.quantile)
     xymats$Yj <- apply(xymats$Yj, 2, capValues, cap.at.quantile = cap.at.quantile)
