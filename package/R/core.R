@@ -176,12 +176,9 @@ fitModel <- function(xymats, model.name, match.by = NULL, log = NULL,
 	                   # do.pred.plot = NULL, do.plot = NULL, plot.dir = NULL,
                      verbose = FALSE) {
 	if (all(model.name != c("marginal", "conditional", "interaction", "TRIPOD"))) {
-  	stop('The model.name argument must be one of "marginal", "conditional", "interaction", "TRIPOD".')
+  	stop('The model.name argument must be one of "marginal", "conditional", "interaction", and "TRIPOD".')
   }
-  if (model.name == "TRIPOD" & !is.null(log)) {
-  	warn('The log transformation is not available with "TRIPOD".')
-  }
-  if (model.name != "TRIPOD" & !is.null(log)) {
+  if (!is.null(log)) {
     if (all(log %in% c("Yg", "Xt", "Yj"))) {
       if (any(log == "Yg")) {
         xymats$Yg <- log(xymats$Yg + 1)
@@ -450,7 +447,7 @@ performMatchedTest <- function(Yg, Xt, Yj, Z = NULL, match.by,
     to.match <- matrix(data = U, nrow = length(U), ncol = 1)
   }
   if (is.null(to.match)) {
-    error("to.match value is not valid.")
+    stop("to.match value is not valid.")
   }
   # compute distances between the variables in to.match
   dmat <- computeDistances(to.match)
