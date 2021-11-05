@@ -24,8 +24,8 @@ devtools::install_github("yharigaya/TRIPOD/package")
 ## Vignettes
 * [Preprocessing - PBMC](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/preprocessing_pbmc.html)
 * [TRIPOD - PBMC](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD_pbmc.html)
-* [Preprocessing - mouse embryonic brain](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/preprocessing.html)
-* [TRIPOD - mouse embryonic brain](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD.html)
+* [Preprocessing - mouse embryonic brain](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/preprocessing_e18.html)
+* [TRIPOD - mouse embryonic brain](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD_e18.html)
 
 ##  Manuscript code
 
