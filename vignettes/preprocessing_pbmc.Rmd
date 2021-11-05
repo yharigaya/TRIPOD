@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 # 1 Introduction
 
-This is a supplement to [the TRIPOD vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD.html).
+This is a supplement to [the TRIPOD vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD_pbmc.html).
 Here, we demonstrate data preprocessing required for conducting
 analysis using the TRIPOD package.
 The input is sigle-cell ATAC/RNA multiomic data, which is publicly available from 
@@ -295,7 +295,7 @@ metacell.peak <- getMetacellMatrix(
 	assay = "ATAC")
 ```
 
-It is necessary to save the Seurat object (`pbmc`) for running [the TRIPOD vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD.html)
+It is necessary to save the Seurat object (`pbmc`) for running [the TRIPOD vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD_pbmc.html)
 since the object is not included in the TRIPOD package.
 
 ```{r, eval = FALSE}
