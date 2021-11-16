@@ -115,7 +115,7 @@ transcripts.gr <- sort(transcripts.gr)
 transcripts.gr
 ```
 
-The `peak.gr` object is a GRanges object from the GenomicRanges package
+The `peaks.gr` object is a GRanges object from the GenomicRanges package
 and contains chromosomal coordinates of the ATAC peak regions in the multiomic
 data.
 
