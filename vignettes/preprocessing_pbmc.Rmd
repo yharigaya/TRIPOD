@@ -84,8 +84,18 @@ which can be downloaded
 
 ## 3.2 Creating objects required for model fitting
 
-We next create objects containing information that is necessary for model fitting, 
+We next create a list object containing information that is necessary for model fitting, 
 namely, `transcripts.gr`, `peaks.gr`, `motifxTF`, and `peakxmotif`. 
+The `transcripts.gr` object is a GRanges object from
+[the GenomicRanges package](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
+and contains chromosomal coordinates of annotated protein containing genes.
+The `peaks.gr` object is a GRanges object from the GenomicRanges package
+and contains chromosomal coordinates of the ATAC peak regions in the multiomic
+data.
+The `motifxTF` object is a matrix containing mapping
+between TFs and their binding motifs.
+The `peakxmotif` object is a binary sparse matrix containing indicators
+as to whether a given motif is preset in a given ATAC peak region.
 See the documentation for more detailed descriptions of these objects.
 
 ```{r, include = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
@@ -96,56 +106,31 @@ path <- file.path(dir.pub, file)
 pbmc <- readRDS(path); rm(path)
 ```
 
+The following code loads the preprossed Seurat object.
+
 ```{r, eval = FALSE}
 file <- "pbmc.chomvar.rds"
 path <- file.path("path/to/your/dir", file)
 pbmc <- readRDS(path); rm(path)
 ```
 
-The `transcripts.gr` object is a GRanges object from [the GenomicRanges package](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
-and contains chromosomal coordinates of annotated protein containing genes.
+The following code creates a list object containing the four elements
+required for model fitting (see above). We note the following points.
 
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-DefaultAssay(pbmc) <- "ATAC"
-transcripts.gr <- Signac:::CollapseToLongestTranscript(ranges = Annotation(pbmc))
-transcripts.gr <- transcripts.gr[transcripts.gr$gene_biotype == "protein_coding"]
-transcripts.gr <- transcripts.gr[seqnames(transcripts.gr) %in% 
-		paste("chr", 1:22, sep = "")]
-transcripts.gr <- sort(transcripts.gr)
-transcripts.gr
-```
-
-The `peaks.gr` object is a GRanges object from the GenomicRanges package
-and contains chromosomal coordinates of the ATAC peak regions in the multiomic
-data.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-peaks.gr <- pbmc@assays$ATAC@ranges
-```
-
-The `motifxTF` object is a matrix containing mapping
-between TFs and their binding motifs.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-motifxTF <- unlist(pbmc@assays$ATAC@motifs@motif.names)
-motifxTF <- cbind(names(motifxTF), motifxTF)
-colnames(motifxTF) <- c("motif", "TF")
-```
-
-The `peakxmotif` object is a binary sparse matrix containing indicators
-as to whether a given motif is preset in a given ATAC peak region.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-peakxmotif <- pbmc@assays$ATAC@motifs@data 
-peakxmotif[1:5, 1:5]
-```
-
-We only keep motifs when genes encoding corresponding TFs are present in the
+* We only keep motifs when genes encoding corresponding TFs are present in the
 RNA-seq data.
+Since the normalization step (SCTranform) do not return values for all input,
+* We ensure that the same set of genes is included in all objects. 
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-peakxmotif <- peakxmotif[, motifxTF[, 2] %in% rownames(pbmc@assays$RNA)]
-motifxTF <- motifxTF[motifxTF[, 2] %in% rownames(pbmc@assays$RNA), ]
+pbmc.tripod <- getObjectsForModelFit(object = pbmc, chr = paste0("chr", 1:22), 
+	convert = TRUE)
+```
+
+We also filter the Seurat object accordingly.
+
+```{r, eval = TRUE, message = FALSE, warning = FALSE}
+pbmc <- filterSeuratObject(object = pbmc, tripod.object = pbmc.tripod)
 ```
 
 We note that our current implementation
@@ -153,51 +138,14 @@ excludes cases where a TF corresponds to multiple motifs or vice versa.
 We plan to provide an option to include such degenerate cases in a future version
 of the package.
 
-## 3.3 Further filering of the data
-
-Since the normalization step (SCTranform) do not return values for all input,
-we perform further data filtering
-to ensure that the same set of genes is included in all objects. 
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-# take the intersection of the genes
-genes <- intersect(transcripts.gr$gene_name, rownames(pbmc@assays$SCT))
-DefaultAssay(pbmc) <- "RNA"
-pbmc@assays$RNA <- subset(pbmc@assays$RNA, 
-	features = match(genes, rownames(pbmc@assays$RNA)))
-pbmc@assays$SCT <- subset(pbmc@assays$SCT, 
-	features = match(genes, rownames(pbmc@assays$SCT)))
-transcripts.gr <- transcripts.gr[match(genes, transcripts.gr$gene_name)]
-peakxmotif <- peakxmotif[, motifxTF[, 2] %in% genes]
-motifxTF <- motifxTF[motifxTF[, 2] %in% genes, ]
-pbmc@assays$chromvar <- subset(
-	pbmc@assays$chromvar,
-	features = match(motifxTF[, 1], rownames(pbmc@assays$chromvar)))
-```
-
-We then perform normalization and dimension reduction again for the filtered data.
+We then perform normalization, dimension reduction, graph construction,
+and UMAP embeddings for the filtered data
+using the `processSeuratObject()` function. The function calls several functions
+from the Seurat packages.
 
 ```{r renormalization, eval = TRUE, message = FALSE, warning = FALSE}
-# RNA analysis
-DefaultAssay(pbmc) <- "RNA"
-pbmc <- SCTransform(pbmc, verbose = FALSE) %>%
-	RunPCA() %>%
-	RunUMAP(dims = 1:50, reduction.name = "umap.rna", reduction.key = "rnaUMAP_")
-
-# ATAC analysis
-# exclude the first dimension as this is typically correlated with sequencing depth
-DefaultAssay(pbmc) <- "ATAC"
-pbmc <- RunTFIDF(pbmc) %>%
-	FindTopFeatures(min.cutoff = "q0") %>%
-	RunSVD() %>%
-	RunUMAP(reduction = "lsi", dims = 2:50, 
-		reduction.name = "umap.atac", reduction.key = "atacUMAP_")
-
-# recalculate a WNN graph
-pbmc <- FindMultiModalNeighbors(pbmc, reduction.list = list("pca", "lsi"), 
-	dims.list = list(1:50, 2:50))
-pbmc <- RunUMAP(pbmc, nn.name = "weighted.nn", 
-	reduction.name = "wnn.umap", reduction.key = "wnnUMAP_")
+pbmc <- processSeuratObject(object = pbmc, dim.rna = 1:50, dim.atac = 2:50,
+	verbose = TRUE)
 ```
 
 The following code visualizes the data on recalculated graphs.
@@ -215,7 +163,7 @@ p3 <- DimPlot(pbmc, reduction = "wnn.umap", group.by = "celltype",
 p1 + p2 + p3 & NoLegend() & theme(plot.title = element_text(hjust = 0.5))
 ```
 
-## 3.4 Partitioning single cells into metacells
+## 3.3 Partitioning single cells into metacells
 
 To alleviate the issue of sparsity of the single cell data, we next partition the cells
 into clusters, which we call metacells. The models in the TRIPOD package are
@@ -233,7 +181,8 @@ Our empirical approach is to select a resolution that gives 80 or more metacells
 the majority of which contain 20 or more single cells. For this purpose, 
 we first construct a shared nearest neighbor graph.
 
-Based on the graph, we then perform clustering at several resolutions.
+Based on the graph calculated in the previous section,
+we then perform clustering at several resolutions.
 The following code generates a data frame containing the resolutions,
 the number of resultant clusters, and the number of clusters with fewer than
 threshold number of single cells. The threshold is set to 20 cells.
@@ -253,32 +202,8 @@ Based on the above analysis, we select the resolution of 15.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
 res <- 15
-pbmc <- FindClusters(pbmc, graph.name = "wsnn", algorithm = 3,
+pbmc <- getClusters(object = pbmc, graph.name = "wsnn", algorithm = 3,
     	resolution = res, verbose = FALSE)
-```
-
-In our procedure, the factor levels need to be in an ascending numerical order.
-The following code shows that the factors are in a desirable order.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-levels(pbmc$wsnn_res.15)
-```
-
-If the factor levels were not ordered properly, they could be reorderd using the following code.
-
-```{r, eval = FALSE, message = FALSE, warning = FALSE}
-tmp <- as.character(pbmc$wsnn_res.15)
-levels.15 <- as.character(sort(as.numeric(levels(pbmc$wsnn_res.15))))
-tmp <- factor(tmp, levels = levels.15)
-pbmc$wsnn_res.15 <- tmp
-```
-
-We then overwrite
-the `seurat_cluster` column with the `wsnn_res.15` column.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-pbmc@meta.data$seurat_clusters <- pbmc@meta.data$wsnn_res.15
-pbmc@meta.data$wsnn_res.15 <- NULL
 ```
 
 We now obtain matrices containing normalized RNA expression and chromatin accessibility per metacell using the `getMetacellMatrix` function. 
