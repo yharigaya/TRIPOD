@@ -22,6 +22,11 @@ devtools::install_github("yharigaya/TRIPOD/package")
 ```
 
 ## Vignettes
+
+The vignettes for the PBMC data provide a brief overview of the data analysis
+using the TRIPOD package, whereas those for the mouse embryonic brain data
+contain detailed descriptions of the procedure.
+
 * [Preprocessing - PBMC](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/preprocessing_pbmc.html)
 * [TRIPOD - PBMC](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD_pbmc.html)
 * [Preprocessing - mouse embryonic brain](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/preprocessing_e18.html)
