@@ -40,4 +40,6 @@ Imports:
     olsrr,
     dendextend,
     FNN,
-    patchwork
+    patchwork,
+    dplyr,
+    stringr
