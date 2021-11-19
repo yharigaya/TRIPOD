@@ -1,3 +1,77 @@
+getObjectsForModelFit <- function(
+                                  object,
+                                  chr,
+	                                convert = FALSE
+                                  ){
+    DefaultAssay(object) <- "ATAC"
+    transcripts.gr <- Signac:::CollapseToLongestTranscript(ranges = Annotation(object))
+    transcripts.gr <- transcripts.gr[transcripts.gr$gene_biotype == "protein_coding"]
+    transcripts.gr <- transcripts.gr[as.character(seqnames(transcripts.gr)) %in% chr]
+    transcripts.gr <- sort(transcripts.gr)
+    peaks.gr <- object@assays$ATAC@ranges
+    motifxTF <- unlist(object@assays$ATAC@motifs@motif.names)
+    motifxTF <- cbind(names(motifxTF), motifxTF)
+    colnames(motifxTF) <- c("motif", "TF")
+    peakxmotif <- object@assays$ATAC@motifs@data
+    if (convert) {
+      motifxTF[, 2] <- stringr::str_to_title(tolower(motifxTF[, 2]))
+    }
+
+    # keep motifs when genes encoding corresponding TFs are present in the RNA-seq data
+    peakxmotif <- peakxmotif[, motifxTF[, 2] %in% rownames(object@assays$RNA)]
+    motifxTF <- motifxTF[motifxTF[, 2] %in% rownames(object@assays$RNA), ]
+    # perform further data filtering to ensure that the same set of genes is included in all objects
+    genes <- intersect(transcripts.gr$gene_name, rownames(object@assays$SCT))
+    DefaultAssay(object) <- "RNA"
+    transcripts.gr <- transcripts.gr[match(genes, transcripts.gr$gene_name)]
+    peakxmotif <- peakxmotif[, motifxTF[, 2] %in% genes]
+    motifxTF <- motifxTF[motifxTF[, 2] %in% genes, ]
+
+    result <- list(transcripts.gr = transcripts.gr,
+                   peaks.gr = peaks.gr,
+                   motifxTF = motifxTF,
+                   peakxmotif = peakxmotif
+                   )
+    return(result)
+}
+
+filterSeuratObject <- function(object, tripod.object){
+    genes <- tripod.object$transcripts.gr$gene_name
+    motifxTF <- tripod.object$motifxTF
+    object@assays$RNA <- subset(object@assays$RNA,
+                                features = match(genes, rownames(object@assays$RNA)))
+    object@assays$SCT <- subset(object@assays$SCT,
+                                features = match(genes, rownames(object@assays$SCT)))
+    object@assays$chromvar <- subset(object@assays$chromvar,
+                                     features = match(motifxTF[, 1], rownames(object@assays$chromvar)))
+    return(object)
+}
+
+processSeuratObject <- function(object, dim.rna = 1:50, dim.atac = 2:50){
+    # RNA analysis
+    DefaultAssay(object) <- "RNA"
+    object <- SCTransform(object, verbose = FALSE) %>%
+	RunPCA() %>%
+	RunUMAP(dims = dim.rna, reduction.name = "umap.rna", reduction.key = "rnaUMAP_")
+
+    # ATAC analysis
+    # exclude the first dimension as this is typically correlated with sequencing depth
+    DefaultAssay(object) <- "ATAC"
+    object <- RunTFIDF(object) %>%
+	FindTopFeatures(min.cutoff = "q0") %>%
+	RunSVD() %>%
+	RunUMAP(reduction = "lsi", dims = dim.atac,
+		reduction.name = "umap.atac", reduction.key = "atacUMAP_")
+
+    # recalculate a WNN graph
+    object <- FindMultiModalNeighbors(object, reduction.list = list("pca", "lsi"),
+	dims.list = list(dim.rna, dim.atac))
+    object <- RunUMAP(object, nn.name = "weighted.nn",
+	reduction.name = "wnn.umap", reduction.key = "wnnUMAP_")
+
+    return(object)
+}
+
 #' Get a metacell matrix
 #'
 #' This function takes a Seurat object as an input and returns a matrix
