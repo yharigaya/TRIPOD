@@ -168,6 +168,7 @@ deleteBranch <- function(Yg, Xt, Yj, dend, alternative,
 #'
 #' @return A dendrogram.
 #' @import dendextend
+#' @importFrom stats aggregate as.dendrogram dist hclust
 #' @export
 getDendrogram <- function(metacell.matrix, metacell.celltype){
 	tmp <- aggregate(metacell.matrix ~ metacell.celltype, FUN = sum)
@@ -219,6 +220,7 @@ getMetacellNeighbor <- function(object, reduction,
 #' This must be one of "two.sided", "greater", and "less".
 #' @param metacell.rm an integer vector containing indices of metacells
 #' to be removed.
+#' @param metacell.celltype a character vector specifying cell types of the metacells.
 #' @param plot.histogram an indicator as to whether to generate histograms
 #' @param nsamp an integer indicating the number of sampling
 #' @param seed an integer

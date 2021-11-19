@@ -189,6 +189,7 @@ plotInfluenceForCellType <- function(delta.coeff.pval, coefficient, threshold = 
 #' @return A ggplot object.
 #'
 #' @import dendextend
+#' @importFrom graphics legend
 #' @export
 plotTree <- function(dend, delta.coeff.pval, coefficient,
 	metacell.celltype, metacell.celltype.col, threshold = 0.05, ...) {
@@ -465,11 +466,15 @@ plotGenePeakTFDot <- function(object, gene.name, peak.name, TF.name,
 #' @param to.plot a character string specifying the model to be analyzed.
 #' This must be one of "marginal.Yg.Xt", "marginal.Yg.Yj", "marginal.Yj.Xt",
 #' "product", "conditional.on.Yj", "conditional.on.Xt", "interaction", or "TRIPOD".
+#' @param level a numerical value specifying the level for TRIPOD. This must be
+#' either 1 or 2.
 #' @param metacell.celltype a character vector specifying cell types of the metacells.
 #' @param metacell.celltype.col a character vector representing cell types of metacells.
 #' @inheritParams fitModel
 #'
 #' @import nbpMatching
+#' @importFrom graphics grid text points
+#' @importFrom stats residuals
 #' @export
 plotGenePeakTFScatter <- function(
 	xymats, peak.name, TF.name,
@@ -675,7 +680,7 @@ plotGenePeakTFScatter <- function(
       cap.at.quantile = cap.at.quantile, delta = delta,
       min.level1 = min.level1, min.level2 = min.level2,
     	metacell.celltype.col = xymats$metacell.celltype.col,
-      verbose = verbose)
+      verbose = FALSE)
     matched.cells <- res$matched.cells
     dYg <- matched.cells$dYg
     dV <- matched.cells$dV
@@ -750,6 +755,7 @@ plotGenePeakTFScatter <- function(
 #' @param metacell.celltype.col a character vector representing cell types of metacells.
 #' @param ... further arguments passed to {\code{\link{plot}}}
 #'
+#' @importFrom graphics legend
 #' @export
 plotRNAPrediction <- function(
 	xymats, metacell.celltype = NULL, metacell.celltype.col = "black", ...

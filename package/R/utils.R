@@ -5,6 +5,7 @@
 #' @param do.plot a logical scalar indicating whether to
 #' produce a diagnostic plot.
 #'
+#' @importFrom graphics grid
 #' @return a logical matrix indicating whether the null hypothesis
 #' has been rejected for each element.
 performBHMatrix <- function(pvals, fdr.thresh = 0.01, do.plot = NULL) {

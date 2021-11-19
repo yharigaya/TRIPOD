@@ -35,6 +35,7 @@
 #' in the peakmotif.g matrix where the entry is non-zero.}
 #'
 #' @import GenomicRanges Matrix
+#' @importFrom methods as
 #'
 #' @export
 getXYMatrices <- function(gene.name, ext.upstream, ext.downstream = NULL,
@@ -43,7 +44,8 @@ getXYMatrices <- function(gene.name, ext.upstream, ext.downstream = NULL,
                           peakxmotif, motifxTF,
                           metacell.celltype = NULL, metacell.celltype.col = NULL) {
   if (is.null(ext.downstream)) ext.downstream <- ext.upstream
-  transcripts.ext.gr <- promoters(transcripts.gr, upstream = ext.upstream, downstream = ext.downstream + 1)
+  transcripts.ext.gr <- promoters(transcripts.gr,
+  	upstream = ext.upstream, downstream = ext.downstream + 1)
 
   # get a vector of the target gene expression
   Yg <- metacell.rna[, gene.name]
@@ -51,9 +53,11 @@ getXYMatrices <- function(gene.name, ext.upstream, ext.downstream = NULL,
   transcripts.gr.g <- transcripts.gr[transcripts.gr$gene_name == gene.name]
   transcripts.ext.gr.g <- transcripts.ext.gr[transcripts.ext.gr$gene_name == gene.name]
   peaks.gr.g <- subsetByOverlaps(peaks.gr, transcripts.ext.gr.g)
-  Xt <- metacell.peak[, overlapsAny(peaks.gr, transcripts.ext.gr[transcripts.ext.gr$gene_name == gene.name]), drop = FALSE]
+  Xt <- metacell.peak[, overlapsAny(peaks.gr,
+  	transcripts.ext.gr[transcripts.ext.gr$gene_name == gene.name]), drop = FALSE]
   # get motifs within vicinity region of gene g
-  peakxmotif.g <- peakxmotif[overlapsAny(peaks.gr, transcripts.ext.gr[transcripts.ext.gr$gene_name == gene.name]), , drop = FALSE]
+  peakxmotif.g <- peakxmotif[overlapsAny(peaks.gr,
+  	transcripts.ext.gr[transcripts.ext.gr$gene_name == gene.name]), , drop = FALSE]
   # remove motifs that do not have binding sites in this gene region
   peakxmotif.g <- peakxmotif.g[, apply(peakxmotif.g, 2, sum) > 0, drop = FALSE]
   # get a vector containing TF names
@@ -904,6 +908,7 @@ getTFGenePairs <- function(
 #' the predicted and observed Yg values}
 #'
 #' @import GenomicRanges Matrix glmnet
+#' @importFrom stats predict
 #'
 #' @export
 performRNAPrediction <- function(xymats, model.name, log = NULL,

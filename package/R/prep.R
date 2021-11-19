@@ -1,3 +1,29 @@
+#' Get objects required for model fitting
+#'
+#' This function takes a Seurat object and returns a list object containing
+#' elements that are required for model fitting.
+#'
+#' @param object a Seurat object.
+#' @param chr a character string specifying chromosomes. This would be
+#' `paste0("chr", 1:22)` for the autosomes in human.
+#' @param convert a logical variable to indicate whether the gene names need
+#' to be converted. The current
+#' version only supports conversion from human to mouse.
+#' This is necessary when a human motif dataset is used for analyzing mouse data.
+#'
+#' @return This function returns a list object with the following elements.
+#' \describe{
+#'   \item{transcripts.gr}{a GRanges object containing chromosomal coordinates
+#'   of annotated protein containing genes.}
+#'   \item{peaks.gr}{a GRanges object containing chromosomal coordinates
+#'   of the ATAC peak regions in the multiomic data.}
+#'   \item{motifxTF}{a matrix containing mapping between TFs and their binding motifs.}
+#'   \item{peakxmotif}{a binary sparse matrix containing indicators
+#'   as to whether a given motif is present in a given ATAC peak region.}
+#' }
+#' @import GenomicRanges Seurat Signac
+#' @export
+#'
 getObjectsForModelFit <- function(
                                   object,
                                   chr,
@@ -35,6 +61,21 @@ getObjectsForModelFit <- function(
     return(result)
 }
 
+#' Filter a Seurat object
+#'
+#' This function filters a Seurat object and an output
+#' from {\code{\link{getObjectsForModelFit}}}
+#' to ensure that
+#' TF binding motifs are kept only when genes encoding corresponding TFs are
+#' present in the RNA-seq data and that the same set of genes is included
+#' in all objects that are necessary for model fitting.
+#'
+#' @param object a Seurat object.
+#' @param tripod.object a list object returned by {\code{\link{getObjectsForModelFit}}}
+#'
+#' @return This function returns a Seurat object.
+#' @import Seurat Signac
+#' @export
 filterSeuratObject <- function(object, tripod.object){
     genes <- tripod.object$transcripts.gr$gene_name
     motifxTF <- tripod.object$motifxTF
@@ -47,29 +88,52 @@ filterSeuratObject <- function(object, tripod.object){
     return(object)
 }
 
-processSeuratObject <- function(object, dim.rna = 1:50, dim.atac = 2:50){
+#' Process a Seurat object
+#'
+#' This is a wrapper function to perform normalization, dimension reduction,
+#' nearest-neighbor graph construction, and UMAP embedding for the RNA and
+#' ATAC modalities. It also calculates a weighted nearest neighbor (WNN) graph.
+#'
+#' @param object a Seurat object.
+#' @param dim.rna a integer vector passed to {\code{\link{RunUMAP}}},
+#' {\code{\link{FindNeighbors}}}, and {\code{\link{FindMultiModalNeighbors}}}
+#' for the RNA modality.
+#' @param dim.atac a integer vector passed to {\code{\link{RunUMAP}}},
+#' {\code{\link{FindNeighbors}}}, and {\code{\link{FindMultiModalNeighbors}}}
+#' for the ATAC modality.
+#' @param verbose a logical variable.
+#'
+#' @return This function returns a Seurat object.
+#' @import dplyr Seurat Signac
+#' @export
+processSeuratObject <- function(object, dim.rna = 1:50, dim.atac = 2:50,
+	verbose = TRUE){
     # RNA analysis
     DefaultAssay(object) <- "RNA"
     object <- SCTransform(object, verbose = FALSE) %>%
-	RunPCA() %>%
-	RunUMAP(dims = dim.rna, reduction.name = "umap.rna", reduction.key = "rnaUMAP_")
+	RunPCA(verbose = verbose) %>%
+	RunUMAP(dims = dim.rna, reduction.name = "umap.rna", reduction.key = "rnaUMAP_",
+		verbose = verbose) %>%
+        FindNeighbors(reduction = "pca", dims = dim.rna)
 
     # ATAC analysis
     # exclude the first dimension as this is typically correlated with sequencing depth
     DefaultAssay(object) <- "ATAC"
-    object <- RunTFIDF(object) %>%
-	FindTopFeatures(min.cutoff = "q0") %>%
-	RunSVD() %>%
+    object <- RunTFIDF(object, verbose = verbose) %>%
+	FindTopFeatures(min.cutoff = "q0", verbose = verbose) %>%
+	RunSVD(verbose = verbose) %>%
 	RunUMAP(reduction = "lsi", dims = dim.atac,
-		reduction.name = "umap.atac", reduction.key = "atacUMAP_")
+		reduction.name = "umap.atac", reduction.key = "atacUMAP_",
+		verbose = verbose) %>%
+        FindNeighbors(reduction = "lsi", dims = dim.atac)
 
-    # recalculate a WNN graph
-    object <- FindMultiModalNeighbors(object, reduction.list = list("pca", "lsi"),
-	dims.list = list(dim.rna, dim.atac))
-    object <- RunUMAP(object, nn.name = "weighted.nn",
-	reduction.name = "wnn.umap", reduction.key = "wnnUMAP_")
+  # calculate a WNN graph
+  object <- FindMultiModalNeighbors(object, reduction.list = list("pca", "lsi"),
+  	dims.list = list(dim.rna, dim.atac), verbose = verbose) %>%
+  	RunUMAP(nn.name = "weighted.nn", reduction.name = "wnn.umap",
+  		reduction.key = "wnnUMAP_", verbose = verbose)
 
-    return(object)
+  return(object)
 }
 
 #' Get a metacell matrix
@@ -112,6 +176,70 @@ getMetacellMatrix <- function(
     metacell[i, ] <- metacell[i, ]/sum(metacell[i, ])*10^6
   }
   return(metacell)
+}
+
+#' Get metacell matrices
+#'
+#' This is a wrapper function of {\code{\link{getMetacellMatrix}}}.
+#'
+#' @inheritParams getMetacellMatrix
+#' @param min.num an integer to represent the minimum number of cells. Metacells
+#' containing single cells fewer than this threshold will be removed.
+#'
+#' @return This function returns a list object containing the following elements.
+#' \item{rna}{a matrix.}
+#' \item{atac}{a matrix.}
+#'
+#' @import Seurat
+#' @export
+getMetacellMatrices <- function(
+	object,
+  cluster.name = "seurat_clusters",
+	min.num = 0
+) {
+  metacell.rna <- getMetacellMatrix(
+	  object = object,
+    cluster.name = "seurat_clusters",
+	  assay = "RNA")
+  metacell.peak <- getMetacellMatrix(
+	  object = object,
+    cluster.name = "seurat_clusters",
+	  assay = "ATAC")
+  # remove metacell clusters with fewer than the threshold
+  remove <- as.vector(table(object@meta.data[[cluster.name]])) < min.num
+  names.remove <- names(table(object@meta.data[[cluster.name]]))[remove]
+  metacell.rna <- metacell.rna[!remove, ]
+  metacell.peak <- metacell.peak[!remove, ]
+  result <- list(rna = metacell.rna, peak = metacell.peak)
+  return(result)
+}
+
+#' Remove small metacells
+#'
+#' This functions removes cells corresponding to metacells with cells fewer than
+#' a threshold from a Seurat object. {\code{\link{getMetacellMatrices}}} must be
+#' run before running this function.
+#'
+#' @inheritParams getMetacellMatrix
+#' @param min.num an integer to represent the minimum number of cells. Metacells
+#' containing single cells fewer than this threshold will be removed.
+#' This must be set to the same value as the input argument to
+#' {\code{\link{getMetacellMatrices}}}.
+#'
+#' @return A Seurat object.
+#'
+#' @import Seurat
+#' @export
+removeSmallMetacells <- function(
+	object,
+	min.num
+) {
+	remove <- as.vector(table(object$seurat_clusters)) < min.num
+  names.remove <- names(table(object$seurat_clusters))[remove]
+  # remove cells in the removed metacell clusters from the Seurat object
+  object <- object[, !(object$seurat_clusters %in% names.remove)]
+  object$seurat_clusters <- droplevels(object$seurat_clusters)
+  return(object)
 }
 
 #' Optimize cluster resolutions
@@ -173,6 +301,37 @@ optimizeResolution <- function(
   return(results)
 }
 
+#' Get metacell assignment
+#'
+#' This function takes an Seurat object as an input and
+#' returns the object with a meta data column, `seurat_clusters`.
+#' containing metacell assignment.
+#'
+#' @param object a Seurat object.
+#' @param resolution a numeric variable specifying the resolution for clustering.
+#' @param graph.name a character string specifying the graph name. This must be
+#' one of the graphs stored in the Seurat object.
+#' @param ... further arguments passed to {\code{\link{FindClusters}}}.
+#'
+#' @return This function returns a Seurat object.
+#' @export
+#' @import Seurat
+getClusters <- function(object, resolution, graph.name, ...){
+    object <- FindClusters(object, graph.name = graph.name,
+    	resolution = resolution, ...)
+
+    # reorder the factor levels
+    column <- paste0(graph.name, "_res.", resolution)
+        if (!(column %in% colnames(object@meta.data))) column <- "seurat_clusters"
+    tmp <- as.character(object@meta.data[[column]])
+    levels.clust <- as.character(sort(as.numeric(levels(object@meta.data[[column]]))))
+    tmp <- factor(tmp, levels = levels.clust)
+    object$seurat_clusters <- tmp
+    if (column != "seurat_clusters") object[[column]] <- NULL
+
+    return(object)
+}
+
 #' Get cell types for metacells
 #'
 #' @param object a Seurat object.
@@ -184,8 +343,9 @@ optimizeResolution <- function(
 #' @return a character vector
 #' @export
 getCellTypeForMetacell <- function(
-	object, metacell.matrix,
-	celltype.col.name = "celltype", cluster.col.name = "seurat_clusters"
+	object,
+	celltype.col.name = "celltype",
+	cluster.col.name = "seurat_clusters"
 ) {
   tmp <- table(unlist(object[[celltype.col.name]]),
   	unlist(object[[cluster.col.name]]))
@@ -206,7 +366,7 @@ getCellTypeForMetacell <- function(
 #'
 #' @return a data frame
 #' @export
-getColorsForSingleCells <- function(
+getColorsForSingleCell <- function(
 	object, reduction, celltype.col.name
 ) {
 	# get the corresponding color for each cell type from Seurat
@@ -229,7 +389,7 @@ getColorsForSingleCells <- function(
 #'
 #' @return a data frame
 #' @export
-getColorsForMetacells <- function(metacell.celltype, sc.color.map) {
+getColorsForMetacell <- function(metacell.celltype, sc.color.map) {
   metacell.celltype.col <- rep(NA, length(metacell.celltype))
   for (i in 1:length(metacell.celltype)) {
     metacell.celltype.col[i] <-
@@ -243,15 +403,52 @@ getColorsForMetacells <- function(metacell.celltype, sc.color.map) {
 
 #' Get a mapping between cell types and colors
 #'
-#' @param ordered.celltypes a character string
-#' @param metacell.color.map a data frame
+#' @param ordered.celltypes a character string.
+#' @param metacell.color.map a data frame.
 #'
 #' @return a data frame
 #' @export
-getColors <- function(ordered.celltypes, metacell.color.map) {
+getColorsForCellType <- function(ordered.celltypes, metacell.color.map) {
   color.map <- unique(metacell.color.map)
   color.map <- color.map[match(ordered.celltypes, color.map$celltype), ]
   rownames(color.map) <- NULL
   return(color.map)
 }
 
+#' Get color coding based on cell types
+#'
+#' This function takes a Seurat object as input and
+#' returns data frames containing mappings of colors to
+#' single cells, metacells, and cell types.
+#'
+#' @inheritParams getCellTypeForMetacell
+#' @inheritParams getColorsForSingleCell
+#' @inheritParams getColorsForMetacell
+#' @inheritParams getColorsForCellType
+#'
+#' @return a list of data frames
+#' @export
+getColors <- function(
+	object, reduction = "umap.rna",
+	celltype.col.name = "celltype", cluster.col.name = "seurat_clusters"
+) {
+	metacell.celltype <- getCellTypeForMetacell(
+		object = object,
+		celltype.col.name = celltype.col.name,
+		cluster.col.name = cluster.col.name
+	)
+	sc.color.map <- getColorsForSingleCell(
+		object = object, reduction = reduction,
+		celltype.col.name = celltype.col.name
+	)
+	metacell.color.map <- getColorsForMetacell(
+	  metacell.celltype = metacell.celltype, sc.color.map = sc.color.map)
+  # metacell.celltype.col <- metacell.color.map$color
+	celltype.color.map <- getColorsForCellType(
+		ordered.celltypes = levels(droplevels(object@meta.data[[celltype.col.name]])),
+		metacell.color.map = metacell.color.map)
+	result <- list(sc = sc.color.map,
+		metacell = metacell.color.map,
+		celltype = celltype.color.map)
+	return(result)
+}
