@@ -30,6 +30,8 @@ This must be one of "two.sided", "greater", and "less".}
 \item{metacell.rm}{an integer vector containing indices of metacells
 to be removed.}
 
+\item{metacell.celltype}{a character vector specifying cell types of the metacells.}
+
 \item{plot.histogram}{an indicator as to whether to generate histograms}
 
 \item{nsamp}{an integer indicating the number of sampling}

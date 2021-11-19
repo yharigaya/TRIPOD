@@ -33,6 +33,9 @@ such as "chr15-79201373-79203205".}
 This must be one of "marginal.Yg.Xt", "marginal.Yg.Yj", "marginal.Yj.Xt",
 "product", "conditional.on.Yj", "conditional.on.Xt", "interaction", or "TRIPOD".}
 
+\item{level}{a numerical value specifying the level for TRIPOD. This must be
+either 1 or 2.}
+
 \item{match.by}{a character string specifying the variable to be matched.
 This is necessary for "TRIPOD" only.}
 

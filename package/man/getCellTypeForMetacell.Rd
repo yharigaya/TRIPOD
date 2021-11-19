@@ -6,7 +6,6 @@
 \usage{
 getCellTypeForMetacell(
   object,
-  metacell.matrix,
   celltype.col.name = "celltype",
   cluster.col.name = "seurat_clusters"
 )

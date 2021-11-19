@@ -2,18 +2,31 @@
 % Please edit documentation in R/prep.R
 \name{getColors}
 \alias{getColors}
-\title{Get a mapping between cell types and colors}
+\title{Get color coding based on cell types}
 \usage{
-getColors(ordered.celltypes, metacell.color.map)
+getColors(
+  object,
+  reduction = "umap.rna",
+  celltype.col.name = "celltype",
+  cluster.col.name = "seurat_clusters"
+)
 }
 \arguments{
-\item{ordered.celltypes}{a character string}
+\item{object}{a Seurat object.}
 
-\item{metacell.color.map}{a data frame}
+\item{reduction}{a character string specifying a dimension reduction method.}
+
+\item{celltype.col.name}{a character string specifying the name of the
+meta data column in the Seurat object containing cell types.}
+
+\item{cluster.col.name}{a character string specifying the name of the
+meta data column in the Seurat object containing cluster numbers.}
 }
 \value{
-a data frame
+a list of data frames
 }
 \description{
-Get a mapping between cell types and colors
+This function takes a Seurat object as input and
+returns data frames containing mappings of colors to
+single cells, metacells, and cell types.
 }
