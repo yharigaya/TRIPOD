@@ -22,8 +22,13 @@ knitr::opts_chunk$set(
 # 1 Introduction
 
 TRIPOD is a statistical framework for detecting three-way regulatory relationships
-between a *cis*-regulatory region, a TF, and a target gene, which we call a "trio,"
-using single-cell ATAC/RNA multiomic data. The main functionality of this package is:
+between a *cis*-regulatory chromosomal region, a transcription factor (TF), 
+and a target gene, which we call a "trio,"
+using single-cell ATAC/RNA multiomic data. 
+This approach can complement commonly used methods
+based on pair-wise associations between
+two of the three elements (e.g., a TF and a target gene).
+The main functionality of this package is:
 
 * Infers trio regulatory relationships using robust nonparametric models
 
@@ -39,30 +44,31 @@ gene expression using sigle-cell multiomic data, which is publicly available fro
 The data was generated in 11909 cells of human peripheral blood mononuclear cells (PBMCs) 
 and contains ATAC-seq and RNA-seq read counts for 108377 ATAC peaks 
 and 36601 gene regions, respectively.
+Note that multiomic data generated via other protocols can be analyzed using this package.
 
-# 2 Basic data formats and notations in TRIPOD
+# 2 Key features of the TRIPOD method
 
-The processed ATAC-seq data from multiomic experiments can be represented as a
-$c$ by $n$ matrix, $X$, where $c$ is the number of cells and $n$ is the number of peaks.
-$X_{it}$ represents the $(i, t)$ element for $i = 1, \cdots, c$
-and $t = 1, \cdots, n$.
-The processed RNA-seq data can be represented by a $c$ by $m$ matrix, $Y$, 
-where $c$ is the number of cells and $m$ is the number of genes.
-$Y_{ig}$ represents the $(i, g)$ element for $i = 1, \cdots, c$
-and $g = 1, \cdots, m$.
-Importantly, $c$ is shared between $X$ and $Y$ because of the multiomic technology.
-For a given gene $g$, we consider a set of ATAC peaks near the 
+In the TRIPOD method, for a given gene, $g$,
+we consider a set of ATAC peaks near the 
 transcription start site (TSS), which are candidate *cis*-regulatory elements.
 In most cases, we include peaks 100 to 200 Kb up and downstream from TSS.
-We also consider RNA expression levels of a set of TFs, $Y_{ij}$, 
+We also consider RNA expression levels of a set of TFs 
 whose binding motifs are present in any of the peaks.
-That is, we use the same RNA-sequencing data for the target gene expression
-and TF activity but with different subscripts, $g$ for target genes and $j$ for TFs.
-A key point is that, in our system, cell $i$ represents a group of similar cells, 
-which we call a "metacell," rather than a single cell.
-Signals for single cells in the multimodal data are excessively sparse, and,
-to resolve the issue of the sparsity, it is necessary to aggregate information 
-across cells.
+
+For a given trio consisting of the gene $g$, the peak $t$, and the TF $j$, 
+TRIPOD characterizes the target gene expression (denoted as $Y_g$) 
+as a function of the chromatin accessibility in the peak region (denoted as $X_t$)
+and the TF ($Y_j$) expression.
+The $X_t$ variables are extracted from the ATAC-seq data,
+whereas the $Y_g$ and $Y_j$ variables are extracted from the RNA-seq data.
+
+Additionally, TRIPOD has the following features.
+
+* Use a matching-based, nonparametric approach to account for 
+potentially nonlinear relationships between the variables
+* Use a two-level testing framework to allow for multiple levels of stringency
+* Construct metacells by aggregating information across similar cells 
+to mitigate the issues of the sparsity and noisiness of single cell data
 
 # 3 Required packages
 
@@ -131,7 +137,8 @@ ext.upstream <- ext.downstream <- 1e5
 
 We first invoke the `getXYMatrices()` function.
 For a given gene, the function returns a list containing a set of 
-$Y_g$, $X_t$, and $Y_j$. Here, we obtain a list of lists for the two genes.
+$Y_g$, $X_t$, and $Y_j$, which we call a `xymats` list.
+Here, we obtain a list of `xymats` objects for the two genes.
 
 ```{r, eval = TRUE}
 xymats.list <- bplapply(
@@ -151,10 +158,11 @@ names(xymats.list) <- genes
 ```
 
 We then run TRIPOD using the following code. Note that TRIPOD can be run matching
-either chromatin accessibility, $X_t$,
-or TF expression, $Y_j$.
-In either case, two tests with different stringency are performed (level 1 and 2).
-See [our manuscript](https://www.biorxiv.org/content/10.1101/2021.09.22.461437v1) for details.
+either chromatin accessibility, $X_t$, or TF expression, $Y_j$.
+In either case, two tests with different stringency are performed
+(level 1 and level 2).
+See [our manuscript](https://www.biorxiv.org/content/10.1101/2021.09.22.461437v1)
+for details.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
 # run TRIPOD matching Xt
@@ -192,7 +200,8 @@ sign <- "positive"
 The `getTrios()` function returns a data frame with columns containing 
 the target gene name, peak number, TF number, peak name, TF name, 
 estimates of the coefficient, nominal $p$-value, and BH-adjusted $p$-value. 
-Here, for brevity, we only show the code for TRIPOD level 1 and 2 matching $X_t$.
+Here, for brevity, we only show the code for TRIPOD level 1 and level 2
+matching $X_t$.
 
 ```{r, eval = TRUE}
 # TRIPOD level 1 matching Xt
@@ -217,6 +226,12 @@ xymats.tX2.pos.df <- getTrios(
 )
 head(xymats.tX2.pos.df[order(xymats.tX2.pos.df$adj), ])
 ```
+
+The hits from the four variations of TRIPOD (level 1 test matching $X_t$,
+level 2 test matching $X_t$, level 1 test matching $Y_j$,
+level 2 test matching $Y_j$) can be used separately 
+in downstream analyses.
+Alternatively or additionally, the union set can be used.
 
 ## 4.3 Visualizaing the results
 
@@ -433,7 +448,9 @@ In this section, we demonstrate the functionality of the TRIPOD package to infer
 cell types in which a trio regulatory relationship may be active 
 by estimating the influence of a data point in models.
 In the current version of the package, we only implement this framework with
-the linear interaction model due to the large computational burdens of
+a linear interaction model (see [the vignette for mouse embryonic brain data] (https://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD_e18.html)
+or [our manuscript](https://www.biorxiv.org/content/10.1101/2021.09.22.461437v1))
+due to the large computational burdens of
 performing the sampling procedure on the nonparametric models.
 
 ## 6.1 Preparation
@@ -579,7 +596,7 @@ To perform the visualization, it is necessary to obtain neighboring metacells fo
 each of the metacells first. The `getMetacellNeighbor()` function, which takes
 a Seurat object and returns k nearest neighbors for each point, can be used for
 this purpose. In the following code, we use the `pbmc` object, 
-which has been read into the workspace in section 5.3, and set $k$ to 4.
+which has been read into the workspace in section 4.3, and set $k$ to 4.
 
 ```{r, eval = TRUE}
 reduction <- "umap.rna"
