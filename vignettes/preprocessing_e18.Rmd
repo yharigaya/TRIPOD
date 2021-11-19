@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 # 1 Introduction
 
-This is a supplement to [the TRIPOD vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD_e18.html).
+This is a supplement to [the TRIPOD vignette for the 10x Genomics mouse embryonic brain data](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD_e18.html).
 Here, we demonstrate data preprocessing required for conducting
 analysis using the TRIPOD package.
 The input is sigle-cell ATAC/RNA multiomic data, which is publicly available from 
@@ -76,19 +76,17 @@ from the 10x Genomics website
 file <- "e18_mouse_brain_fresh_5k_filtered_feature_bc_matrix.h5"
 dir.data <- "~/Dropbox/TRIPOD/source_data"
 path <- file.path(dir.data, file)
+inputdata.10x <- Read10X_h5(path); rm(path)
 ```
 
-In the following code, `"/path/to/your/hdf5/file"` needs to be replaced with
+The following code reads in the hdf5 file from 10x Genomics, 
+`e18_mouse_brain_fresh_5k_filtered_feature_bc_matrix.h5`, which contains
+both RNA and ATAC-seq data.
+`"/path/to/your/hdf5/file"` needs to be replaced with
 the path to `e18_mouse_brain_fresh_5k_filtered_feature_bc_matrix.h5`.
 
-```{r, eval = FALSE, message = FALSE, warning = FALSE}
-path <- "/path/to/your/hdf5/file"
-```
-
-The following code reads in the hdf5 file from 10x Genomics, which contains
-both RNA and ATAC-seq data.
-
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
+path <- "/path/to/your/hdf5/file"
 inputdata.10x <- Read10X_h5(path); rm(path)
 ```
 
@@ -165,43 +163,17 @@ Cell clustering and visualization give an informative overview of the data prope
 For this purpose, we first perform pre-processing and dimensional reduction
 on the ATAC and RNA modalities independently according to [the Seurat tutorial](https://satijalab.org/seurat/articles/weighted_nearest_neighbor_analysis.html).
 
-The following code normalizes the RNA-seq data, performs principal component
-analysis (PCA), and constructs a Uniform Manifold Approximation and Projection
-(UMAP) graph.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-# perform RNA analysis
-DefaultAssay(e18) <- "RNA"
-e18 <- SCTransform(e18, verbose = FALSE)
-e18 <- RunPCA(e18)
-e18	<- RunUMAP(e18, reduction = "pca", dims = 1:50, 
-	reduction.name = "umap.rna", reduction.key = "rnaUMAP_")
-```
-
-The following code normalizes the ATAC-seq data, performs partial singular
-value decomposition, and constructs a UMAP graph.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-# perform ATAC analysis
-# exclude the first dimension as this is typically correlated with sequencing depth
-DefaultAssay(e18) <- "ATAC"
-e18 <- RunTFIDF(e18)
-e18 <- FindTopFeatures(e18, min.cutoff = "q0")
-e18 <- RunSVD(e18)
-e18 <- RunUMAP(e18, reduction = "lsi", dims = 2:50, 
-	reduction.name = "umap.atac", reduction.key = "atacUMAP_")
-```
-
-Additionally, we calculate a weighted-nearest neighbor (WNN) graph, 
+The `processSeuratObject()` function calls several functions
+from the Seurat packages and performs normalization, dimension reduction,
+nearest neighbor graph construction,
+and Uniform Manifold Approximation and Projection (UMAP) embedding
+for the RNA-seq and ATAC-seq data.
+It also calculates a weighted-nearest neighbor (WNN) graph, 
 which represents a weighted combination of RNA and ATAC-seq modalities.
 
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-# calculate a WNN graph
-e18 <- FindMultiModalNeighbors(e18, reduction.list = list("pca", "lsi"), 
-	dims.list = list(1:50, 2:50))
-e18 <- RunUMAP(e18, nn.name = "weighted.nn", reduction.name = "wnn.umap", 
-	reduction.key = "wnnUMAP_")
-# e18 <- FindClusters(e18, graph.name = "wsnn", algorithm = 3, verbose = FALSE)
+```{r normalization, eval = TRUE, message = FALSE, warning = FALSE}
+e18 <- processSeuratObject(object = e18, dim.rna = 1:50, dim.atac = 2:50,
+	verbose = FALSE)
 ```
 
 We then visualize the cell-type labels using color-coded UMAP plots 
@@ -240,7 +212,8 @@ sort(table(e18$label.savercat), decreasing = TRUE)
 
 Based on the above information as well as existing biological knowledge, we
 focus on the seven cell types, "Cajal-Retzius",
-"Cortical or hippocampal glutamatergic", "Forebrain GABAergic", "Glioblast",                         Neuroblast, "Oligodendrocyte", and "Radial glia".
+"Cortical or hippocampal glutamatergic", "Forebrain GABAergic", "Glioblast",
+"Neuroblast", "Oligodendrocyte", and "Radial glia".
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
 # filter cells based on cell labels
@@ -388,60 +361,40 @@ e18 <- RunChromVAR(
 ## 3.7 Creating objects required for model fitting
 
 We then create objects containing information that is necessary for model fitting, 
-namely, `transcripts.gr`, `peaks.gr`, `motifxTF`, and `peakxmotif`. 
-See the documentation for more detailed descriptions of these objects.
-
-The `transcripts.gr` object is a GRanges object from [the GenomicRanges package](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
+namely, `transcripts.gr`, `peaks.gr`, `motifxTF`, and `peakxmotif`.
+The `transcripts.gr` object is a GRanges object from
+[the GenomicRanges package](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
 and contains chromosomal coordinates of annotated protein containing genes.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-DefaultAssay(e18) <- "ATAC"
-transcripts.gr <- Signac:::CollapseToLongestTranscript(ranges = Annotation(e18))
-transcripts.gr <- transcripts.gr[transcripts.gr$gene_biotype == "protein_coding"]
-transcripts.gr <- transcripts.gr[seqnames(transcripts.gr) %in% 
-		paste("chr", 1:19, sep = "")]
-transcripts.gr <- sort(transcripts.gr)
-transcripts.gr
-```
-
-The `peak.gr` object is a GRanges object from the GenomicRanges package
+The `peaks.gr` object is a GRanges object from the GenomicRanges package
 and contains chromosomal coordinates of the ATAC peak regions in the multiomic
 data.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-peaks.gr <- e18@assays$ATAC@ranges
-```
-
 The `motifxTF` object is a matrix containing mapping
 between TFs and their binding motifs.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-motifxTF <- unlist(e18@assays$ATAC@motifs@motif.names)
-motifxTF <- cbind(names(motifxTF), motifxTF)
-colnames(motifxTF) <- c("motif", "TF")
-```
-
 The `peakxmotif` object is a binary sparse matrix containing indicators
-as to whether a given motif is preset in a given ATAC peak region.
+as to whether a given motif is present in a given ATAC peak region.
+
+The `getObjectsForModelFit()` function creates a list object containing the four elements.
+The function keeps motifs only when genes encoding corresponding TFs are present in the
+RNA-seq data and ensures that the same set of genes is included in all objects. 
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-peakxmotif <- e18@assays$ATAC@motifs@data 
-peakxmotif[1:5, 1:5]
-dim(peakxmotif)
+tripod.e18 <- getObjectsForModelFit(object = e18, chr = paste0("chr", 1:19), 
+	convert = TRUE)
 ```
 
-We then convert the human gene symbols to mouse counterparts.
+Individual objects can be extracted using the following code.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-motifxTF[, 2] <- stringr::str_to_title(tolower(motifxTF[, 2]))
+transcripts.gr <- tripod.e18$transcripts.gr
+peaks.gr <- tripod.e18$peaks.gr
+motifxTF <- tripod.e18$motifxTF
+peakxmotif <- tripod.e18$peakxmotif.gr
 ```
 
-We only keep motifs when genes encoding corresponding TFs are present in the
-RNA-seq data.
+We also filter the Seurat object accordingly.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-peakxmotif <- peakxmotif[, motifxTF[, 2] %in% rownames(e18@assays$RNA)]
-motifxTF <- motifxTF[motifxTF[, 2] %in% rownames(e18@assays$RNA), ]
+e18 <- filterSeuratObject(object = e18, tripod.object = tripod.e18)
 ```
 
 We note that our current implementation
@@ -449,54 +402,13 @@ excludes cases where a TF corresponds to multiple motifs or vice versa.
 We plan to provide an option to include such degenerate cases in a future version
 of the package.
 
-## 3.8 Further filering of the data
+## 3.8 Reprocessing of the Seurat object
 
-Since the normalization step (SCTranform) do not return values for all input,
-we perform further data filtering
-to ensure that the same set of genes is included in all objects. 
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-# take the intersection of the genes
-genes <- intersect(transcripts.gr$gene_name, rownames(e18@assays$SCT))
-DefaultAssay(e18) <- "RNA"
-e18@assays$RNA <- subset(e18@assays$RNA, 
-	features = match(genes, rownames(e18@assays$RNA)))
-e18@assays$SCT <- subset(e18@assays$SCT, 
-	features = match(genes, rownames(e18@assays$SCT)))
-transcripts.gr <- transcripts.gr[match(genes, transcripts.gr$gene_name)]
-peakxmotif <- peakxmotif[, motifxTF[, 2] %in% genes]
-motifxTF <- motifxTF[motifxTF[, 2] %in% genes, ]
-e18@assays$chromvar <- subset(
-	e18@assays$chromvar,
-	features = match(motifxTF[, 1], rownames(e18@assays$chromvar)))
-```
-
-We then perform normalization and dimension reduction again for the filtered data.
+We then reprocess the filtered data using the `processSeuratObject()` function.
 
 ```{r renormalization, eval = TRUE, message = FALSE, warning = FALSE}
-# perform re-normalization
-# RNA analysis
-DefaultAssay(e18) <- "RNA"
-e18 <- SCTransform(e18, verbose = FALSE)
-e18 <- RunPCA(e18)
-e18	<- RunUMAP(e18, reduction = "pca", dims = 1:50, 
-	reduction.name = "umap.rna", reduction.key = "rnaUMAP_")
-
-# ATAC analysis
-DefaultAssay(e18) <- "ATAC"
-e18 <- RunTFIDF(e18)
-e18 <- FindTopFeatures(e18, min.cutoff = "q0")
-e18 <- RunSVD(e18)
-e18 <- RunUMAP(e18, reduction = "lsi", dims = 2:50, 
-	reduction.name = "umap.atac", reduction.key = "atacUMAP_")
-
-# recalculate a WNN graph
-e18 <- FindMultiModalNeighbors(e18, reduction.list = list("pca", "lsi"), 
-	dims.list = list(1:50, 2:50))
-e18 <- RunUMAP(e18, nn.name = "weighted.nn", 
-	reduction.name = "wnn.umap", reduction.key = "wnnUMAP_")
-e18 <- FindClusters(e18, graph.name = "wsnn", 
-  algorithm = 3, verbose = FALSE) # this may not be necessary
+e18 <- processSeuratObject(object = e18, dim.rna = 1:50, dim.atac = 2:50,
+	verbose = FALSE)
 ```
 
 The following code visualizes the data on recalculated graphs.
@@ -520,7 +432,7 @@ To alleviate the issue of sparsity of the single cell data, we next partition th
 into clusters, which we call metacells. The models in the TRIPOD package are
 based on metacells, not single cells. Cells can be clustered based on either the ATAC
 or RNA modality. It is also possible to use the weighted nearest neighbor (WNN) method [@Hao2021].
-For the mouse embyonic barin data, we use the RNA modality (see above).
+For the mouse embryonic brain data, we use the RNA modality.
 
 To obtain a set of metacells suited for model fitting, it is necessary to select
 an optimal resolution of clustering to ensure the following.
@@ -532,13 +444,8 @@ Our empirical approach is to select a resolution that gives 80 or more metacells
 the majority of which contain 20 or more single cells. For this purpose, 
 we first construct a shared nearest neighbor graph.
 
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-# get rna meta-cells by clustering cells on basis of their scRNA-seq profiles
-DefaultAssay(e18) <- "SCT"
-e18 <- FindNeighbors(e18, reduction = "pca", dims = 1:30)
-```
-
-Based on the graph, we then perform clustering at several resolutions.
+Based on the graph calculated in the previous section,
+we first perform clustering at several resolutions.
 The following code generates a data frame containing the resolutions,
 the number of resultant clusters, and the number of clusters with fewer than
 threshold number of single cells. The threshold is set to 20 cells.
@@ -546,8 +453,8 @@ threshold number of single cells. The threshold is set to 20 cells.
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
 num.clusters <- optimizeResolution(
 	object = e18,
-	graph.name = "SCT_snn",
-	assay.name = "SCT",
+	graph.name = "wsnn",
+	assay.name = "WNN",
 	resolutions = seq(10, 35, 5),
 	min.num = 20
 )
@@ -558,62 +465,33 @@ Based on the above analysis, we select the resolution of 15.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
 res <- 15
-e18 <- FindClusters(e18, graph.name = "SCT_snn",
+e18 <- getClusters(object = e18, graph.name = "wsnn", algorithm = 3,
     	resolution = res, verbose = FALSE)
 ```
 
-In our procedure, the factor levels need to be in an ascending numerical order.
-The following code shows that the ordering is not desirable.
+We now obtain matrices containing normalized RNA expression and chromatin accessibility per metacell using the `getMetacellMatrices` function. The function returns a list object containing metacell matrices for
+the RNA and ATAC modalities. We remove metacells with fewer than 20 single cells
+by setting the `min.num` to 20.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-levels(e18$SCT_snn_res.15)
+metacell.e18 <- getMetacellMatrices(object = e18,
+  cluster.name = "seurat_clusters",
+	min.num = 20
+)
 ```
 
-We reorder the factor levels using the following code.
+Individual matrices can be extracted using the following code.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-tmp <- as.character(e18$SCT_snn_res.15)
-levels.15 <- as.character(sort(as.numeric(levels(e18$SCT_snn_res.15))))
-tmp <- factor(tmp, levels = levels.15)
-e18$SCT_snn_res.15 <- tmp
-levels(e18$SCT_snn_res.15)
+metacell.rna <- metacell.e18$rna
+metacell.peak <- metacell.e18$peak
 ```
 
-We then overwrite
-the `seurat_cluster` column with the `SCT_snn_res.15` column.
+We then remove corresponding single cells from the Seurat object. The `min.num`
+argument must to be set to the same as above.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-e18@meta.data$seurat_clusters <- e18@meta.data$SCT_snn_res.15
-e18@meta.data$SCT_snn_res.15 <- NULL
-```
-
-We now obtain matrices containing normalized RNA expression and chromatin accessibility per metacell using the `getMetacellMatrix` function. 
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-metacell.rna <- getMetacellMatrix(
-	object = e18,
-  cluster = "seurat_clusters",
-	assay = "RNA")
-
-metacell.peak <- getMetacellMatrix(
-	object = e18,
-  cluster = "seurat_clusters",
-	assay = "ATAC")
-```
-
-We then remove metacell clusters with fewer than 20 cells from the matrices
-as well as cells in the removed metacell clusters from the Seurat object.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-# remove metacell clusters with fewer than 20 cells
-remove <- as.vector(table(e18$seurat_clusters)) < 20
-names.remove <- names(table(e18$seurat_clusters))[remove]
-metacell.rna <- metacell.rna[!remove, ]
-metacell.peak <- metacell.peak[!remove, ]
-
-# remove cells in the removed metacell clusters from the Seurat object
-e18 <- e18[, !(e18$seurat_clusters %in% names.remove)]
-e18$seurat_clusters <- droplevels(e18$seurat_clusters)
+e18 <- removeSmallMetacells(object = e18, min.num = 20)
 ```
 
 It is necessary to save the Seurat object (`e18`) for running [the TRIPOD vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD_e18.html)
@@ -629,50 +507,32 @@ saveRDS(e18, path); rm(path)
 
 For visualization purposes, it is convenient to assign colors to cell types
 and create objects storing mapping between them. For this purpose, 
-we first assign cell types to metacells.
+we use the `getColors()` function, which returns data frames containing
+mappings of colors to single cells, metacells, and cell types.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-metacell.celltype <- getCellTypeForMetacell(e18,
-	celltype.col.name = "celltype", cluster.col.name = "seurat_clusters")
+color.e18 <- getColors(object = e18)
 ```
 
-We then assign colors to cell types. The following code generates a mapping 
-between cell types and colors for single cells.
+The following code extracts the mapping between the metacells and cell types
+as a character string. Note that the cell types are ordered by the metacell
+indices.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-sc.color.map <- getColorsForSingleCells(
-	object = e18, reduction = "umap.rna", celltype.col.name = "celltype")
-head(sc.color.map)
-```
-
-The following code creates a mapping between cell types and colors for metacells.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-metacell.color.map <- getColorsForMetacells(
-	metacell.celltype = metacell.celltype, sc.color.map = sc.color.map)
-head(metacell.color.map)
-```
-
-It is also convenient to have a mapping between cell types and colors
-themselves.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-color.map <- getColors(ordered.celltypes = levels(e18$celltype),
-	metacell.color.map = metacell.color.map)
-color.map
+metacell.celltype <- color.e18$metacell$celltype
+metacell.color <- color.e18$metacell$color
 ```
 
 ## 3.11 Getting a list of target genes
 
 We typically run model fitting for top-ranked highly variable genes (HVGs)
-identified by Seurat. The following code gives a ordered list of top 3000 HVGs.
+identified by the `VariableFeatures()` function from the Seurat packages.
+The following code gives a ordered list of top 3000 HVGs.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
 # obtain highly variable genes based on SCT
 DefaultAssay(e18) <- "SCT"
-head(VariableFeatures(e18))
-length(VariableFeatures(e18))
-hvg <- VariableFeatures(e18)
+hvg.e18 <- VariableFeatures(e18)
 ```
 
 # Session information

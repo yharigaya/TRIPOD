@@ -229,7 +229,6 @@ See [our manuscript](https://www.biorxiv.org/content/10.1101/2021.09.22.461437v1
 | TRIPOD         |              | coef.level1      | TRIPOD            |
 | TRIPOD         |              | coef.level2      | TRIPOD            |
 
-
 The following code performs marginal testing.
 
 ```{r, eval = TRUE, message = FALSE}
@@ -568,8 +567,8 @@ performing the sampling procedure on the nonparametric models.
 
 ## 7.1 Preparation
 
-We focus on the regulation of the *Neurog2*
-gene by the Pax6 TF via the peak chr3-127639075-127643093, which gives
+We focus on the regulation of the *GNLY*
+gene by the TBX21 TF via the peak chr2-85693711-85699520, which gives
 a significanly positive coefficient of the interaction term (see below).
 
 ```{r, eval = TRUE}
@@ -697,11 +696,8 @@ plotTree(dend = dend, delta.coeff.pval = delta.coeff.pval,
 	metacell.celltype.col = pbmc.metacell.celltype.col, threshold = 0.01)
 ```
 
-The above result again implies that the regulation may occur in neuroblasts
-and glioblasts. Although the significant results are restricted to leaf nodes
-for this trio from the mouse embryonic btain data, we have observed examples 
-where nodes in branches are consistently significant, particularly in the
-PBMC dataset (see [our manuscript](https://www.biorxiv.org/content/10.1101/2021.09.22.461437v1)).
+The above result again implies that the regulation of the *GNLY*
+gene by the TBX21 TF via the peak chr2-85693711-85699520 may occur in the NK cells.
 
 ## 7.5 Visualizing the cell-type specificity of transcriptional regulation
 

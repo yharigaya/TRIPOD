@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 # 1 Introduction
 
-This is a supplement to [the TRIPOD vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD_pbmc.html).
+This is a supplement to [the TRIPOD vignette for the 10x Genomics PBMC data](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD_pbmc.html).
 Here, we demonstrate data preprocessing required for conducting
 analysis using the TRIPOD package.
 The input is sigle-cell ATAC/RNA multiomic data, which is publicly available from 
@@ -84,18 +84,9 @@ which can be downloaded
 
 ## 3.2 Creating objects required for model fitting
 
-We next create a list object containing information that is necessary for model fitting, 
+From the processed Seurat object, we create a list object containing 
+information that is necessary for model fitting, 
 namely, `transcripts.gr`, `peaks.gr`, `motifxTF`, and `peakxmotif`. 
-The `transcripts.gr` object is a GRanges object from
-[the GenomicRanges package](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
-and contains chromosomal coordinates of annotated protein containing genes.
-The `peaks.gr` object is a GRanges object from the GenomicRanges package
-and contains chromosomal coordinates of the ATAC peak regions in the multiomic
-data.
-The `motifxTF` object is a matrix containing mapping
-between TFs and their binding motifs.
-The `peakxmotif` object is a binary sparse matrix containing indicators
-as to whether a given motif is preset in a given ATAC peak region.
 See the documentation for more detailed descriptions of these objects.
 
 ```{r, include = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
@@ -106,7 +97,7 @@ path <- file.path(dir.pub, file)
 pbmc <- readRDS(path); rm(path)
 ```
 
-The following code loads the preprossed Seurat object.
+The following code loads the preprocessed Seurat object.
 
 ```{r, eval = FALSE}
 file <- "pbmc.chomvar.rds"
@@ -114,23 +105,31 @@ path <- file.path("path/to/your/dir", file)
 pbmc <- readRDS(path); rm(path)
 ```
 
-The following code creates a list object containing the four elements
-required for model fitting (see above). We note the following points.
+We then create a list object containing the four elements
+required for model fitting (see above). Note the following points.
 
 * We only keep motifs when genes encoding corresponding TFs are present in the
 RNA-seq data.
-Since the normalization step (SCTranform) do not return values for all input,
 * We ensure that the same set of genes is included in all objects. 
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-pbmc.tripod <- getObjectsForModelFit(object = pbmc, chr = paste0("chr", 1:22), 
+tripod.pbmc <- getObjectsForModelFit(object = pbmc, chr = paste0("chr", 1:22), 
 	convert = TRUE)
+```
+
+Individual objects can be extracted using the following code.
+
+```{r, eval = TRUE, message = FALSE, warning = FALSE}
+transcripts.gr <- tripod.pbmc$transcripts.gr
+peaks.gr <- tripod.pbmc$peaks.gr
+motifxTF <- tripod.pbmc$motifxTF
+peakxmotif <- tripod.pbmc$peakxmotif.gr
 ```
 
 We also filter the Seurat object accordingly.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-pbmc <- filterSeuratObject(object = pbmc, tripod.object = pbmc.tripod)
+pbmc <- filterSeuratObject(object = pbmc, tripod.object = tripod.pbmc)
 ```
 
 We note that our current implementation
@@ -138,14 +137,16 @@ excludes cases where a TF corresponds to multiple motifs or vice versa.
 We plan to provide an option to include such degenerate cases in a future version
 of the package.
 
+## 3.3 Reprocessing of the Seurat object
+
 We then perform normalization, dimension reduction, graph construction,
-and UMAP embeddings for the filtered data
+and Uniform Manifold Approximation and Projection (UMAP) embedding for the filtered data
 using the `processSeuratObject()` function. The function calls several functions
 from the Seurat packages.
 
 ```{r renormalization, eval = TRUE, message = FALSE, warning = FALSE}
 pbmc <- processSeuratObject(object = pbmc, dim.rna = 1:50, dim.atac = 2:50,
-	verbose = TRUE)
+	verbose = FALSE)
 ```
 
 The following code visualizes the data on recalculated graphs.
@@ -163,7 +164,7 @@ p3 <- DimPlot(pbmc, reduction = "wnn.umap", group.by = "celltype",
 p1 + p2 + p3 & NoLegend() & theme(plot.title = element_text(hjust = 0.5))
 ```
 
-## 3.3 Partitioning single cells into metacells
+## 3.4 Partitioning single cells into metacells
 
 To alleviate the issue of sparsity of the single cell data, we next partition the cells
 into clusters, which we call metacells. The models in the TRIPOD package are
@@ -206,18 +207,20 @@ pbmc <- getClusters(object = pbmc, graph.name = "wsnn", algorithm = 3,
     	resolution = res, verbose = FALSE)
 ```
 
-We now obtain matrices containing normalized RNA expression and chromatin accessibility per metacell using the `getMetacellMatrix` function. 
+We now obtain matrices containing normalized RNA expression and chromatin accessibility per metacell using the `getMetacellMatrices` function. The function returns a list object containing metacell matrices for
+the RNA and ATAC modalities.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-metacell.rna <- getMetacellMatrix(
-	object = pbmc,
-  cluster = "seurat_clusters",
-	assay = "RNA")
+metacell.pbmc <- getMetacellMatrices(object = pbmc,
+  cluster.name = "seurat_clusters"
+)
+```
 
-metacell.peak <- getMetacellMatrix(
-	object = pbmc,
-  cluster = "seurat_clusters",
-	assay = "ATAC")
+Individual matrices can be extracted using the following code.
+
+```{r, eval = TRUE, message = FALSE, warning = FALSE}
+metacell.rna <- metacell.pbmc$rna
+metacell.peak <- metacell.pbmc$peak
 ```
 
 It is necessary to save the Seurat object (`pbmc`) for running [the TRIPOD vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/TRIPOD_pbmc.html)
@@ -233,51 +236,32 @@ saveRDS(pbmc, path); rm(path)
 
 For visualization purposes, it is convenient to assign colors to cell types
 and create objects storing mapping between them. For this purpose, 
-we first assign cell types to metacells.
+we use the `getColors()` function, which returns data frames containing
+mappings of colors to single cells, metacells, and cell types.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-metacell.celltype <- getCellTypeForMetacell(pbmc,
-	celltype.col.name = "celltype", cluster.col.name = "seurat_clusters")
+color.pbmc <- getColors(object = pbmc)
 ```
 
-We then assign colors to cell types. The following code generates a mapping 
-between cell types and colors for single cells.
+The following code extracts the mapping between the metacells and cell types
+as a character string. Note that the cell types are ordered by the metacell
+indices.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
-sc.color.map <- getColorsForSingleCells(
-	object = pbmc, reduction = "umap.rna", celltype.col.name = "celltype")
-head(sc.color.map)
-```
-
-The following code creates a mapping between cell types and colors for metacells.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-metacell.color.map <- getColorsForMetacells(
-	metacell.celltype = metacell.celltype, sc.color.map = sc.color.map)
-metacell.celltype.col <- metacell.color.map$color 
-head(metacell.color.map)
-```
-
-It is also convenient to have a mapping between cell types and colors
-themselves.
-
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
-color.map <- getColors(ordered.celltypes = levels(droplevels(pbmc$celltype)),
-	metacell.color.map = metacell.color.map)
-color.map
+metacell.celltype <- color.pbmc$metacell$celltype
+metacell.color <- color.pbmc$metacell$color
 ```
 
 ## 3.6 Getting a list of target genes
 
 We typically run model fitting for top-ranked highly variable genes (HVGs)
-identified by Seurat. The following code gives a ordered list of top 3000 HVGs.
+identified by the `VariableFeatures()` function from the Seurat packages.
+The following code gives a ordered list of top 3000 HVGs.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
 # obtain highly variable genes based on SCT
 DefaultAssay(pbmc) <- "SCT"
-head(VariableFeatures(pbmc))
-length(VariableFeatures(pbmc))
-hvg <- VariableFeatures(pbmc)
+hvg.pbmc <- VariableFeatures(pbmc)
 ```
 
 # Session information
