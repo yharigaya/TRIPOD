@@ -54,12 +54,14 @@ and 32285 gene regions, respectively.
 # 2 Basic data formats and notations in TRIPOD
 
 The processed ATAC-seq data from multiomic experiments can be represented as a
-$i$ by $t$ matrix, $X$, where $i$ is the number of cells and $t$ is the number of peaks.
-$X_{it}$ represents the $(i, t)$ element.
-The processed RNA-seq data can be represented by a $i$ by $g$ matrix, $Y$, 
-where $i$ is the number of cells and $g$ is the number of genes.
-$Y_{ig}$ represents the $(i, g)$ element.
-Importantly, $i$ is shared between $X$ and $Y$ because of the multiomic technology.
+$c$ by $n$ matrix, $X$, where $c$ is the number of cells and $n$ is the number of peaks.
+$X_{it}$ represents the $(i, t)$ element for $i = 1, \cdots, c$
+and $t = 1, \cdots, n$.
+The processed RNA-seq data can be represented by a $c$ by $m$ matrix, $Y$, 
+where $c$ is the number of cells and $m$ is the number of genes.
+$Y_{ig}$ represents the $(i, g)$ element for $i = 1, \cdots, c$
+and $g = 1, \cdots, m$.
+Importantly, $c$ is shared between $X$ and $Y$ because of the multiomic technology.
 For a given gene $g$, we consider a set of ATAC peaks near the 
 transcription start site (TSS), which are candidate *cis*-regulatory elements.
 In most cases, we include peaks 100 to 200 Kb up and downstream from TSS.

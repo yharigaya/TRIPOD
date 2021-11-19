@@ -21,17 +21,6 @@ knitr::opts_chunk$set(
 
 # 1 Introduction
 
-Proper regulation of gene transcription is crucial for cell identity and function,
-and an accurate understanding of this process is expected to provide insights
-into disease mechanisms. While the transcriptional regulation of a given gene 
-involves complex interplay between multiple factors, in one view, the system
-can be decomposed into modules consisting of a *cis*-regulatory DNA element and 
-a transcription factor (TF) that activates or represses the target gene through
-binding to the element. The recently developed single-cell multiomics technology,
-in which both RNA expression and chromatin accessibility are measured
-at a genome-wide level using ATAC-seq and RNA-seq in the same single cells, provides
-ideal opportunities to interrogate such regulatory logic.
-
 TRIPOD is a statistical framework for detecting three-way regulatory relationships
 between a *cis*-regulatory region, a TF, and a target gene, which we call a "trio,"
 using single-cell ATAC/RNA multiomic data. The main functionality of this package is:
@@ -54,12 +43,14 @@ and 36601 gene regions, respectively.
 # 2 Basic data formats and notations in TRIPOD
 
 The processed ATAC-seq data from multiomic experiments can be represented as a
-$i$ by $t$ matrix, $X$, where $i$ is the number of cells and $t$ is the number of peaks.
-$X_{it}$ represents the $(i, t)$ element.
-The processed RNA-seq data can be represented by a $i$ by $g$ matrix, $Y$, 
-where $i$ is the number of cells and $g$ is the number of genes.
-$Y_{ig}$ represents the $(i, g)$ element.
-Importantly, $i$ is shared between $X$ and $Y$ because of the multiomic technology.
+$c$ by $n$ matrix, $X$, where $c$ is the number of cells and $n$ is the number of peaks.
+$X_{it}$ represents the $(i, t)$ element for $i = 1, \cdots, c$
+and $t = 1, \cdots, n$.
+The processed RNA-seq data can be represented by a $c$ by $m$ matrix, $Y$, 
+where $c$ is the number of cells and $m$ is the number of genes.
+$Y_{ig}$ represents the $(i, g)$ element for $i = 1, \cdots, c$
+and $g = 1, \cdots, m$.
+Importantly, $c$ is shared between $X$ and $Y$ because of the multiomic technology.
 For a given gene $g$, we consider a set of ATAC peaks near the 
 transcription start site (TSS), which are candidate *cis*-regulatory elements.
 In most cases, we include peaks 100 to 200 Kb up and downstream from TSS.
@@ -73,55 +64,7 @@ Signals for single cells in the multimodal data are excessively sparse, and,
 to resolve the issue of the sparsity, it is necessary to aggregate information 
 across cells.
 
-# 3 Overview of the workflow
-
-## 3.1 Data preprocessing
-
-The data preprocessing is performed using the Seurat and Signac packages
-according to the accompanying tutorials (see [the preprocessing vignette](http://htmlpreview.github.io/?https://github.com/yharigaya/TRIPOD/blob/main/vignettes/preprocessing_pbmc.html)).
-The first step is to create a Seurat object containing both single-cell ATAC-seq and RNA-seq data. We then add TF motif information to the Seurat object.
-
-From the Seurat object, we next extract smaller objects used for model fitting
-including the following:
-
-* Chromosomal coordinates of target genes (`<dataset_name>.transcripts.gr`)
-* ATAC peaks thereof (`<dataset_name>.peaks.gr`)
-* Mapping between TFs and motifs (`<dataset_name>.motifxTF`)
-* Indicators as to whether a given motif exists in ATAC peaks (`<dataset_name>.peakxmotif`)
-
-We then create metacell matrices by aggregating "similar" cells.
-The groups of cells can be identified based on either ATAC or RNA modalities.
-Alternatively, Weighted Nearest Neighbot (WNN) method can be used to partition
-single cells into metacell clusters.
-
-## 3.2 Model fitting
-
-The first step in the model fitting for identifying three-way regulatory
-relationship is to create a `xymats` object for a target gene of interest
-(Section 5.1). `xymats` is a list containing information that is necessary to
-perform model fitting across all candidate trios for the target gene, including
-the $Y_g$, $X_t$, and $Y_j$ vectors (`xymats$Yg`, `xymats$Xt`, and `xymats$Yj`).
-Note that the `xymats$Xt` and `xymats$Yj` elements are matrices with
-rows representing metacells and
-columns representing peaks and TFs, respectively.
-The `xymats` object is also used as input for RNA prediction (Section 6).
-For the influential analysis, we first extract the $Y_g$, $X_t$, and $Y_j$ vectors
-for a given trio (Section 7).
-
-We fit the TRIPOD model as well as other related models using the `fitModel()` 
-function, which returns a `xymats` object with estimates of coefficients
-and associated $p$-values.
-Attention needs to be paid for the following points.
-
-* Different models returns `xymats` objects with different elements since they
-yields estimates of different sets of coefficients.
-* By default, `fitModel()` caps outliers in the `xymats$Yg`, `xymats$Xt`, 
-and `xymats$Yj` elements, and the elements are replaced with the capped values.
-That is, the elements differ between the input and output.
-
-The formulation of the models is described in detail in [our manuscript](https://www.biorxiv.org/content/10.1101/2021.09.22.461437v1).
-
-# 4 Required packages
+# 3 Required packages
 
 The TRIPOD package is available from [GitHub](https://github.com/yharigaya/TRIPOD).
 
@@ -148,7 +91,7 @@ library(patchwork)
 library(BiocParallel)
 ```
 
-# 5 Detecting candidate trio regulatory relationships
+# 4 Detecting candidate trio regulatory relationships
 
 In this section, we demonstrate how to screen for trio regulatory relationships
 using data objects that have been preprocessed from the multiomics data and
@@ -168,13 +111,10 @@ data(pbmc.metacell.celltype)
 data(pbmc.metacell.celltype.col)
 ```
 
-## 5.1 Fitting models
+## 4.1 Fitting models
 
-Since the different approaches can identify complementary sets of regulatory 
-relationships, we recommend fitting other models implemented in the `fitModel()` function
-in addition to running TRIPOD.
-We typically run model fitting for top 1000 highly variable genes.
-In this vignette, we fit models for two examples genes, *CCR7* and *GNLY*
+Although we typically run model fitting for over 1000 target genes,
+in this vignette, we fit models for two examples genes, *CCR7* and *GNLY*
 for demonstration purposes.
 
 ```{r, eval = TRUE}
@@ -191,7 +131,7 @@ ext.upstream <- ext.downstream <- 1e5
 
 We first invoke the `getXYMatrices()` function.
 For a given gene, the function returns a list containing a set of 
-$Y_g$, $X_t$, and $Y_j$. Here, we obtain a list of lists for the four genes.
+$Y_g$, $X_t$, and $Y_j$. Here, we obtain a list of lists for the two genes.
 
 ```{r, eval = TRUE}
 xymats.list <- bplapply(
@@ -210,59 +150,11 @@ xymats.list <- bplapply(
 names(xymats.list) <- genes
 ```
 
-We now use the `fitModel()` function to fit models. The table below
-summarizes coefficients estimated in the models and input arguments
-to the functions including `getTrios()`, which generates a data frame of screen hits.
+We then run TRIPOD using the following code. Note that TRIPOD can be run matching
+either chromatin accessibility, $X_t$,
+or TF expression, $Y_j$.
+In either case, two tests with different stringency are performed (level 1 and 2).
 See [our manuscript](https://www.biorxiv.org/content/10.1101/2021.09.22.461437v1) for details.
-
-| Model name     | Formula      | Coefficient name | Input argument    |
-|:---------------|:-------------|:-----------------|:------------------|
-| marginal       | Yg ~ Xt      | alpha.m          | marginal.Yg.Xt    |
-| marginal       | Yg ~ Yj      | beta.m           | marginal.Yg.Yj    |
-| marginal       | Yg ~ Xt:Yj   | gamma.m          | NA                |
-| marginal       | Yj ~ Xt      | eta.m            | marginal.Yj.Xt    |
-| conditional    | Yg ~ Xt + Yj | alpha.c          | conditional.on.Yj |
-| conditional    | Yg ~ Xt + Yj | beta.c           | conditional.on.Xt |
-| interaction    | Yg ~ Xt*Yj   | alpha.i          | NA                |
-| interaction    | Yg ~ Xt*Yj   | beta.i           | NA                |
-| interaction    | Yg ~ Xt*Yj   | gamma.i          | interaction       |
-| TRIPOD         |              | coef.level1      | TRIPOD            |
-| TRIPOD         |              | coef.level2      | TRIPOD            |
-
-The following code performs marginal testing.
-
-```{r, eval = TRUE, message = FALSE}
-xymats.m.list <- bplapply(
-	xymats.list,
-  fitModel,
-	model.name = "marginal"
-)
-names(xymats.m.list) <- genes
-```
-
-The following code performs conditional testing.
-
-```{r, eval = TRUE, message = FALSE}
-xymats.c.list <- bplapply(
-	xymats.list,
-  fitModel,
-	model.name = "conditional"
-)
-names(xymats.c.list) <- genes
-```
-
-The following code fits the linear interaction model. 
-
-```{r, eval = TRUE, message = FALSE}
-xymats.i.list <- bplapply(
-	xymats.list,
-  fitModel,
-	model.name = "interaction"
-)
-names(xymats.i.list) <- genes
-```
-
-Finally, we run TRIPOD matching either $X_t$ or $Y_j$ using the following code.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
 # run TRIPOD matching Xt
@@ -283,28 +175,11 @@ xymats.tripod.Yj.list <- bplapply(
 names(xymats.tripod.Yj.list) <- genes
 ```
 
-The resultant lists contain estimates of coefficients and associated $p$-values.
-We show the results focusing on the marginal models and 
-TRIPOD matching $X_t$ for the *GNLY* gene.
+## 4.2 Getting lists of hits
 
-```{r, eval = TRUE}
-xymats.tripod.Xt <- xymats.tripod.Xt.list$GNLY
-names(xymats.tripod.Xt)
-```
-
-The `xymats.tripod.Xt$coef.level2` is a matrix containing estimates of 
-coefficients from the level 2 test.
-The $(t, j)$ element is the result with $t$-th ATAC peak and the $j$-th TF.
-Note that the majority of the entries are `NA` due to the absence of
-high-scoring TF motifs in ATAC peak regions or to inestimable coefficients. 
-
-## 5.2 Getting lists of hits
-
-We select hits by Benjamini-Hochberg (BH) method with a certain FDR threshold.
+Next, we select hits by Benjamini-Hochberg (BH) method with a certain FDR threshold.
 We typically use a threshold of 0.01 and focus on hits with significantly
-positive coefficients. In the current version, the FDR method is applied for
-a given target gene for the ease of computation, although it is more accurate
-to apply the method across all analyzed target genes.
+positive coefficients.
 
 ```{r, eval = TRUE}
 # set FDR < 0.01
@@ -315,10 +190,9 @@ sign <- "positive"
 ```
 
 The `getTrios()` function returns a data frame with columns containing 
-the gene name, peak index ($i$ for the $i$-th peak), 
-TF index ($j$ for the $j$-th TF), peak name, TF name, 
+the target gene name, peak number, TF number, peak name, TF name, 
 estimates of the coefficient, nominal $p$-value, and BH-adjusted $p$-value. 
-Here, we only show the code for TRIPOD level 1 and 2 matching $X_t$.
+Here, for brevity, we only show the code for TRIPOD level 1 and 2 matching $X_t$.
 
 ```{r, eval = TRUE}
 # TRIPOD level 1 matching Xt
@@ -344,10 +218,7 @@ xymats.tX2.pos.df <- getTrios(
 head(xymats.tX2.pos.df[order(xymats.tX2.pos.df$adj), ])
 ```
 
-The `getPeakGenePairs()` and `getTFGenePairs()` functions instead of 
-`getTrios()` must be used for the `Yg ~ Xt` and `Yg ~ Yj` marginal models.
-
-## 5.3 Visualizaing the results
+## 4.3 Visualizaing the results
 
 We recommend visually inspecting the trio hits by generating scatter plots.
 In this section, we demonstrate data visualization focusing on
@@ -486,7 +357,7 @@ plotGenePeakTFDot(object = pbmc, gene.name = gene.name,
 	size.title = 12, size.axis = 12, size.legend = 12, ncol = 1)
 ```
 
-# 6 Predicting RNA expression using ATAC-seq data
+# 5 Predicting RNA expression using ATAC-seq data
 
 The `performRNAPrediction()` function builds predictive models of gene expression
 on chromatin accessibility of the vicinity region.
@@ -495,11 +366,11 @@ scRNA-seq data are required as predictors, it allows for examining
 whether TF RNA expression information improves 
 the prediction of the target gene expression in a given dataset.
 
-## 6.1 Fitting models
+## 5.1 Fitting models
 
 We demonstrate the predictive modeling focusing on the *CCR7* gene.
 We utilize the `xymats` object we have created with a window size of 100 Kb 
-(see Section 5).
+(see Section 4).
 
 ```{r, eval = TRUE}
 gene.name <- "CCR7"
@@ -537,7 +408,7 @@ xymats.peak.lasso <- performRNAPrediction(xymats = xymats, model.name = "peak.LA
 xymats.peak.lasso$cor
 ```
 
-## 6.2 Visualizaing the results
+## 5.2 Visualizaing the results
 
 The models can be investigated by visualization as follows.
 
@@ -556,7 +427,7 @@ plotRNAPrediction(
 	metacell.celltype.col = pbmc.metacell.celltype.col, cex.main = 0.9, cex.lab = 0.9)
 ```
 
-# 7 Identifying putative cell-type-specific trio regulatory relationships
+# 6 Identifying putative cell-type-specific trio regulatory relationships
 
 In this section, we demonstrate the functionality of the TRIPOD package to infer 
 cell types in which a trio regulatory relationship may be active 
@@ -565,7 +436,7 @@ In the current version of the package, we only implement this framework with
 the linear interaction model due to the large computational burdens of
 performing the sampling procedure on the nonparametric models.
 
-## 7.1 Preparation
+## 6.1 Preparation
 
 We focus on the regulation of the *GNLY*
 gene by the TBX21 TF via the peak chr2-85693711-85699520, which gives
@@ -621,7 +492,7 @@ xymats.example <- fitModel(xymats = xymats, model.name = "interaction")
 c(xymats.example$gamma.i[peak.num, TF.num], xymats.example$pval.gamma.i[peak.num, TF.num])
 ```
 
-## 7.2 Analyzing the influence of deleting one metacell at a time
+## 6.2 Analyzing the influence of deleting one metacell at a time
 
 To examine the influence of deleting one metacell, we compute Cook's D
 using the `getCooksD()` function.
@@ -642,7 +513,7 @@ p <- plotDFFIT(d.list, pbmc.metacell.celltype.col)
 p
 ```
 
-## 7.3 Analyzing the influence of deleting metacells of a given cell type at a time
+## 6.3 Analyzing the influence of deleting metacells of a given cell type at a time
 
 To infer the cell type in which the trio regulatory relationship may be active,
 we examine the influence of deleting metacells of each of the cell types
@@ -674,7 +545,7 @@ p
 The above result implies that the regulation of the *GNLY*
 gene by the TBX21 TF via the peak chr2-85693711-85699520 may occur in the NK cells.
 
-## 7.4 Analyzing the influence of deleting metacells of related cell types
+## 6.4 Analyzing the influence of deleting metacells of related cell types
 
 The TRIPOD package also provides a functionality to analyze the influence of
 deleting metacells of related cell types simultaneously. The first step
@@ -699,7 +570,7 @@ plotTree(dend = dend, delta.coeff.pval = delta.coeff.pval,
 The above result again implies that the regulation of the *GNLY*
 gene by the TBX21 TF via the peak chr2-85693711-85699520 may occur in the NK cells.
 
-## 7.5 Visualizing the cell-type specificity of transcriptional regulation
+## 6.5 Visualizing the cell-type specificity of transcriptional regulation
 
 UMAP plots of influential $p$-values can be used to visualize the cell-type specificity
 of a given trio regulatory relationship.
