@@ -85,7 +85,7 @@ both RNA and ATAC-seq data.
 `"/path/to/your/hdf5/file"` needs to be replaced with
 the path to `e18_mouse_brain_fresh_5k_filtered_feature_bc_matrix.h5`.
 
-```{r, eval = TRUE, message = FALSE, warning = FALSE}
+```{r, eval = FALSE}
 path <- "/path/to/your/hdf5/file"
 inputdata.10x <- Read10X_h5(path); rm(path)
 ```
