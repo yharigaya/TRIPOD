@@ -58,7 +58,7 @@ whose binding motifs are present in any of the peaks.
 For a given trio consisting of the gene $g$, the peak $t$, and the TF $j$, 
 TRIPOD characterizes the target gene expression (denoted as $Y_g$) 
 as a function of the chromatin accessibility in the peak region (denoted as $X_t$)
-and the TF ($Y_j$) expression.
+and the TF (denoted as $Y_j$) expression.
 The $X_t$ variables are extracted from the ATAC-seq data,
 whereas the $Y_g$ and $Y_j$ variables are extracted from the RNA-seq data.
 

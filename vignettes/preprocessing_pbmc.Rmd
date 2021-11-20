@@ -86,8 +86,9 @@ which can be downloaded
 
 From the processed Seurat object, we create a list object containing 
 information that is necessary for model fitting, 
-namely, `transcripts.gr`, `peaks.gr`, `motifxTF`, and `peakxmotif`. 
-See the documentation for more detailed descriptions of these objects.
+namely, `transcripts.gr`, `peaks.gr`, `motifxTF`, and `peakxmotif`,
+using the `getObjectsForModelFit()` function. 
+See the documentation of the function for descriptions of these objects.
 
 ```{r, include = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
 # for testing on a local machine only
@@ -98,6 +99,8 @@ pbmc <- readRDS(path); rm(path)
 ```
 
 The following code loads the preprocessed Seurat object.
+`"/path/to/your/dir"` needs to be replaced with
+the path to the directory where `pbmc.chomvar.rds` exists.
 
 ```{r, eval = FALSE}
 file <- "pbmc.chomvar.rds"
@@ -126,7 +129,7 @@ motifxTF <- tripod.pbmc$motifxTF
 peakxmotif <- tripod.pbmc$peakxmotif.gr
 ```
 
-We also filter the Seurat object accordingly.
+After this step, the Seurat object needs to be filtered.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
 pbmc <- filterSeuratObject(object = pbmc, tripod.object = tripod.pbmc)
@@ -139,10 +142,9 @@ of the package.
 
 ## 3.3 Reprocessing of the Seurat object
 
-We then perform normalization, dimension reduction, graph construction,
+We then perform normalization, dimension reduction, nearest neighbor graph construction,
 and Uniform Manifold Approximation and Projection (UMAP) embedding for the filtered data
-using the `processSeuratObject()` function. The function calls several functions
-from the Seurat packages.
+using the `processSeuratObject()` function.
 
 ```{r renormalization, eval = TRUE, message = FALSE, warning = FALSE}
 pbmc <- processSeuratObject(object = pbmc, dim.rna = 1:50, dim.atac = 2:50,
@@ -180,9 +182,7 @@ an optimal resolution of clustering to ensure the following.
 
 Our empirical approach is to select a resolution that gives 80 or more metacells,
 the majority of which contain 20 or more single cells. For this purpose, 
-we first construct a shared nearest neighbor graph.
-
-Based on the graph calculated in the previous section,
+based on the graph calculated in the previous section,
 we then perform clustering at several resolutions.
 The following code generates a data frame containing the resolutions,
 the number of resultant clusters, and the number of clusters with fewer than
@@ -207,7 +207,7 @@ pbmc <- getClusters(object = pbmc, graph.name = "wsnn", algorithm = 3,
     	resolution = res, verbose = FALSE)
 ```
 
-We now obtain matrices containing normalized RNA expression and chromatin accessibility per metacell using the `getMetacellMatrices` function. The function returns a list object containing metacell matrices for
+We now obtain matrices containing normalized RNA expression and chromatin accessibility per metacell using the `getMetacellMatrices()` function. The function returns a list object containing metacell matrices for
 the RNA and ATAC modalities.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
@@ -235,8 +235,9 @@ saveRDS(pbmc, path); rm(path)
 ## 3.5 Assigning cell types and colors for visualization
 
 For visualization purposes, it is convenient to assign colors to cell types
-and create objects storing mapping between them. For this purpose, 
-we use the `getColors()` function, which returns data frames containing
+and create objects storing mapping between them.
+To obtain the objects, we use the `getColors()` function,
+which returns data frames containing
 mappings of colors to single cells, metacells, and cell types.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
