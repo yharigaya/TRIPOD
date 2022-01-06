@@ -39,5 +39,11 @@ contain detailed descriptions of the procedure.
 * [SHARE-seq mouse skin](https://github.com/yharigaya/TRIPOD/tree/main/scripts/share_seq_skin/)
 * [SNARE-seq adult mouse brain](https://github.com/yharigaya/TRIPOD/tree/main/scripts/snare_seq_mbrain/)
 
+
+##  Common questions
+
+* What if my TF/motif of interest is not included in the default annotation?
+* How to handle multiple TFs with the same motif?
+
 ## Reference
 Yuriko Harigaya, Zhaojun Zhang, Hongpan Zhang, Chongzhi Zang, Nancy R Zhang, Yuchao Jiang. Nonparametric Interrogation of Transcriptional Regulation in Single-Cell RNA and Chromatin Accessibility Multiomic Data. ***bioRxiv***, 2021. ([link](https://www.biorxiv.org/content/10.1101/2021.09.22.461437v1))
