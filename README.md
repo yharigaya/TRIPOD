@@ -43,6 +43,7 @@ contain detailed descriptions of the procedure.
 ##  Common questions
 
 * What if my TF/motif of interest is not included in the default annotation?
+* Annotated motifs in addition to the JASPAR database?
 * How to handle multiple TFs with the same motif?
 
 ## Reference
