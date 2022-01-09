@@ -146,36 +146,35 @@ processSeuratObject <- function(object, dim.rna = 1:50, dim.atac = 2:50,
 #' @param cluster.name a character string specifying the cell clusters on which
 #' metacells are based. This must be one of the column names in the meta data
 #' of the Seurat object.
-#' @param assay a character string specifying the assay. This should be
-#' "RNA" and "ATAC" for RNA expression and chromatin accessibility, respectively.
+#' @param assay a character string specifying the assay. This must be one of
+#' "RNA", "SCT", and "ATAC".
+#' @param slot a character string specifying the slot. This must be one of
+#' "counts" or "data".
 #'
 #' @return a matrix
 #' @import Seurat Matrix GenomicRanges
 #' @export
-getMetacellMatrix <- function(
-	object,
-  cluster.name = "seurat_clusters",
-	assay) {
-	if (all(assay != c("RNA", "ATAC"))) {
-    stop('The assay argument should be either "RNA" or "ATAC".')
-	}
-	if (!(cluster.name %in% colnames(object@meta.data))) {
-    stop("The cluster.name argument does not match the meta data.")
-	}
-  clust.levels <- levels(object@meta.data[[cluster.name]])
-  assay.matrix <- GetAssay(object = object, assay = assay)
-  nrow <- length(clust.levels)
-  ncol <- nrow(assay.matrix)
-  metacell <- matrix(nrow = nrow,
-    ncol = ncol)
-  rownames(metacell) <- paste0("metacell_", clust.levels)
-  colnames(metacell) <- rownames(assay.matrix)
-  for (i in 1:nrow(metacell)) {
-    metacell[i, ] <- apply(assay.matrix[, clust.levels == (i - 1)], 1, sum)
-    # adjust for total read counts for each metacell
-    metacell[i, ] <- metacell[i, ]/sum(metacell[i, ])*10^6
-  }
-  return(metacell)
+getMetacellMatrix <- function(object, cluster.name, assay, slot) {
+    if (all(assay != c("RNA", "ATAC"))) {
+        stop("The assay argument should be either \"RNA\" or \"ATAC\".")
+    }
+    if (!(cluster.name %in% colnames(object@meta.data))) {
+        stop("The cluster.name argument does not match the meta data.")
+    }
+    clusters <- object@meta.data[[cluster.name]]
+    clust.levels <- levels(clusters)
+    assay.matrix <- GetAssay(object = object, assay = assay) %>% slot(slot)
+    nrow <- length(clust.levels)
+    ncol <- nrow(assay.matrix)
+    metacell <- matrix(nrow = nrow, ncol = ncol)
+    rownames(metacell) <- paste0("metacell_", clust.levels)
+    colnames(metacell) <- rownames(assay.matrix)
+    for (i in 1:nrow(metacell)) {
+        metacell[i, ] <- apply(assay.matrix[, clusters ==
+            as.character(i - 1)], 1, sum)
+        metacell[i, ] <- metacell[i, ]/sum(metacell[i, ]) * 10^6
+    }
+    return(metacell)
 }
 
 #' Get metacell matrices
@@ -183,6 +182,10 @@ getMetacellMatrix <- function(
 #' This is a wrapper function of {\code{\link{getMetacellMatrix}}}.
 #'
 #' @inheritParams getMetacellMatrix
+#' @param slot.rna a character string specifying the slot for the RNA modality.
+#' This must be one of "counts" and "data".
+#' @param slot.atac a character string specifying the slot for the ATAC modality.
+#' This must be one of "counts" and "data."
 #' @param min.num an integer to represent the minimum number of cells. Metacells
 #' containing single cells fewer than this threshold will be removed.
 #'
@@ -192,26 +195,30 @@ getMetacellMatrix <- function(
 #'
 #' @import Seurat
 #' @export
-getMetacellMatrices <- function(
-	object,
-  cluster.name = "seurat_clusters",
-	min.num = 0
-) {
-  metacell.rna <- getMetacellMatrix(
-	  object = object,
-    cluster.name = "seurat_clusters",
-	  assay = "RNA")
-  metacell.peak <- getMetacellMatrix(
-	  object = object,
-    cluster.name = "seurat_clusters",
-	  assay = "ATAC")
-  # remove metacell clusters with fewer than the threshold
-  remove <- as.vector(table(object@meta.data[[cluster.name]])) < min.num
-  names.remove <- names(table(object@meta.data[[cluster.name]]))[remove]
-  metacell.rna <- metacell.rna[!remove, ]
-  metacell.peak <- metacell.peak[!remove, ]
-  result <- list(rna = metacell.rna, peak = metacell.peak)
-  return(result)
+getMetacellMatrices <- function(object,
+                                cluster.name = "seurat_clusters",
+                                slot.rna = "counts",
+                                slot.atac = "counts",
+                                min.num = 0) {
+    metacell.rna <- getMetacellMatrix(
+        object = object,
+        cluster.name = cluster.name,
+        assay = "RNA",
+        slot = slot.rna
+    )
+    metacell.peak <- getMetacellMatrix(
+        object = object,
+        cluster.name = cluster.name,
+        assay = "ATAC",
+        slot = slot.atac
+    )
+    remove <- as.vector(table(object@meta.data[[cluster.name]])) <
+        min.num
+    names.remove <- names(table(object@meta.data[[cluster.name]]))[remove]
+    metacell.rna <- metacell.rna[!remove, ]
+    metacell.peak <- metacell.peak[!remove, ]
+    result <- list(rna = metacell.rna, peak = metacell.peak)
+    return(result)
 }
 
 #' Remove small metacells
