@@ -4,7 +4,7 @@
 \alias{getMetacellMatrix}
 \title{Get a metacell matrix}
 \usage{
-getMetacellMatrix(object, cluster.name = "seurat_clusters", assay)
+getMetacellMatrix(object, cluster.name, assay, slot)
 }
 \arguments{
 \item{object}{a Seurat object.}
@@ -13,8 +13,11 @@ getMetacellMatrix(object, cluster.name = "seurat_clusters", assay)
 metacells are based. This must be one of the column names in the meta data
 of the Seurat object.}
 
-\item{assay}{a character string specifying the assay. This should be
-"RNA" and "ATAC" for RNA expression and chromatin accessibility, respectively.}
+\item{assay}{a character string specifying the assay. This must be one of
+"RNA", "SCT", and "ATAC".}
+
+\item{slot}{a character string specifying the slot. This must be one of
+"counts" or "data".}
 }
 \value{
 a matrix
