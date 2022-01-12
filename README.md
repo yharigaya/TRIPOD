@@ -44,7 +44,7 @@ contain detailed descriptions of the procedure.
 
 * What if my TF/motif of interest is not included in the default annotation?
 * Annotated motifs in addition to the JASPAR database?
-* How to handle multiple TFs with the same motif?
+* [How to handle multiple TFs with the same motif?](https://github.com/yharigaya/TRIPOD/blob/main/instruction/multiple.md)
 
 ## Reference
 Yuriko Harigaya, Zhaojun Zhang, Hongpan Zhang, Chongzhi Zang, Nancy R Zhang, Yuchao Jiang. Nonparametric Interrogation of Transcriptional Regulation in Single-Cell RNA and Chromatin Accessibility Multiomic Data. ***bioRxiv***, 2021. ([link](https://www.biorxiv.org/content/10.1101/2021.09.22.461437v1))
