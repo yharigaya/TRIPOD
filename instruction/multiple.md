@@ -1,0 +1,97 @@
+## How to handle multiple TFs with the same motif?
+  
+Our original workflow, which is described in the vignettes, exclues
+cases where a given motif corresponds to multiple TFs as well as
+those where a given TF corresponds to multiple TFs. 
+To allow for such cases, a set of functions
+(`getObjectsForModelFit2()`, `filterSeuratObject2()`, 
+`getXYMatrices2()`, and `fitModel2()`) can be used as shown in the code.
+Note that `object` is a Seurat object processed from multiome data and that an example can be 
+downloaded [here](https://www.dropbox.com/s/4afi9rp4t5d5km0/e18.chromvar.rds?dl=0).
+
+```
+# get objects required for model fitting
+tripod <- getObjectsForModelFit2(
+    object = object,
+    chr = paste0("chr", 1:19),
+    convert = TRUE
+)
+
+object <- filterSeuratObject2(
+    object = object, tripod.object = tripod
+)
+
+object <- processSeuratObject(
+    object = object,
+    dim.rna = 1:30,
+    dim.atac = 2:50,
+    verbose = FALSE
+)
+
+res <- 15
+object <- getClusters(
+    object = object,
+    graph.name = "SCT_snn", # algorithm = 1,
+    resolution = res,
+    verbose = FALSE
+)
+
+metacell <- getMetacellMatrices(
+    object = object,
+    cluster.name = "seurat_clusters",
+    min.num = 20
+)
+
+object <- removeSmallMetacells(object = object, min.num = 20)
+
+# fit models for representative genes
+genes <- c("Neurog2", "Eomes", "Olig2", "Sox10")
+ext.upstream <- 2e5
+xymats.list <- bplapply(
+    genes,
+    getXYMatrices2,
+    ext.upstream = ext.upstream,
+    tripod = tripod,
+    metacell = metacell
+)
+names(xymats.list) <- genes
+
+xymats.m.list <- bplapply(
+    xymats.list,
+    fitModel2,
+    model.name = "marginal"
+)
+names(xymats.m.list) <- genes
+
+xymats.c.list <- bplapply(
+    xymats.list,
+    fitModel2,
+    model.name = "conditional"
+)
+names(xymats.c.list) <- genes
+
+xymats.i.list <- bplapply(
+    xymats.list,
+    fitModel2,
+    model.name = "interaction"
+)
+names(xymats.i.list) <- genes
+
+xymats.tX.list <- bplapply(
+    xymats.list,
+    fitModel2,
+    model.name = "TRIPOD",
+    match.by = "Xp"
+)
+names(xymats.tX.list) <- genes
+
+xymats.tY.list <- bplapply(
+    xymats.list,
+    fitModel2,
+    model.name = "TRIPOD",
+    match.by = "Yt"
+)
+names(xymats.tY.list) <- genes
+```
+
+
