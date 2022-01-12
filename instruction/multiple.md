@@ -5,7 +5,8 @@ cases where a given motif corresponds to multiple TFs as well as
 those where a given TF corresponds to multiple TFs. 
 To allow for such cases, a set of functions
 (`getObjectsForModelFit2()`, `filterSeuratObject2()`, 
-`getXYMatrices2()`, and `fitModel2()`) can be used as shown in the code.
+`getXYMatrices2()`, and `fitModel2()`) can be used as shown in the
+following code.
 Note that `object` is a Seurat object processed from multiome data and that an example can be 
 downloaded [here](https://www.dropbox.com/s/4afi9rp4t5d5km0/e18.chromvar.rds?dl=0).
 
