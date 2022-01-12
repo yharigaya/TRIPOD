@@ -1,6 +1,6 @@
 Package: TRIPOD
 Title: Detecting Transcriptional Regulatory Relationships in Single-Cell RNA and Chromatin Accessibility Multiomic Data
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: c(
     person(given = "Yuriko",
            family = "Harigaya",
