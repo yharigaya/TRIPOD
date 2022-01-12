@@ -1,6 +1,6 @@
 ## How to handle multiple TFs with the same motif?
   
-Our original workflow, which is described in the vignettes, exclues
+Our original workflow, which is described in the vignettes, excludes
 cases where a given motif corresponds to multiple TFs as well as
 those where a given TF corresponds to multiple TFs. 
 To allow for such cases, one can use an alternative set of functions
