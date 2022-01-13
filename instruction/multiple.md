@@ -7,7 +7,7 @@ To allow for such cases, one can use an alternative set of functions
 (`getObjectsForModelFit2()`, `filterSeuratObject2()`, 
 `getXYMatrices2()`, and `fitModel2()`) as shown in the
 following example code.
-Note that the `<path/to/seurat>` needs to be replaced with the path to
+Note that `<path/to/seurat>` needs to be replaced with a path to
 a file containing a Seurat object processed from multiome data.
 An example file, which has been processed from the 10X Genomics mouse
 embryonic data, can be downloaded
