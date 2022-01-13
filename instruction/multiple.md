@@ -7,10 +7,24 @@ To allow for such cases, one can use an alternative set of functions
 (`getObjectsForModelFit2()`, `filterSeuratObject2()`, 
 `getXYMatrices2()`, and `fitModel2()`) as shown in the
 following example code.
-Note that `object` is a Seurat object processed from multiome data and that an example can be 
-downloaded [here](https://www.dropbox.com/s/4afi9rp4t5d5km0/e18.chromvar.rds?dl=0).
+Note that the `<path/to/seurat>` needs to be replaced with the path to
+a file containing a Seurat object processed from multiome data.
+An example file, which has been processed from the 10X Genomics mouse
+embryonic data, can be downloaded
+[here](https://www.dropbox.com/s/4afi9rp4t5d5km0/e18.chromvar.rds?dl=0).
 
-```
+```r
+library(tidyverse)
+library(Seurat)
+library(Signac)
+library(GenomicRanges)
+library(BiocParallel)
+library(TRIPOD)
+library(nbpMatching)
+
+# read in the Seurat object
+object <- <path/to/seurat> %>% readRDS()
+
 # get objects required for model fitting
 tripod <- getObjectsForModelFit2(
     object = object,
