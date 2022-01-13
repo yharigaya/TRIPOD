@@ -43,7 +43,7 @@ contain detailed descriptions of the procedure.
 ##  Common questions
 
 * What if my TF/motif of interest is not included in the default annotation?
-* Annotated motifs in addition to the JASPAR database?
+* [Annotated motifs in addition to the JASPAR database?](https://github.com/yharigaya/TRIPOD/blob/main/instruction/database.md)
 * [How to handle multiple TFs with the same motif?](https://github.com/yharigaya/TRIPOD/blob/main/instruction/multiple.md)
 
 ## Reference

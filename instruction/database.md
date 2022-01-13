@@ -17,7 +17,7 @@ Note that `<path/to/motif>`, `<path/to/anno>`, and `<path/to/seurat>`
 need to be replaced with paths to the motif file, and
 annotation file, and `Seurat` file, respectively.
 
-```
+```r
 library(tidyverse)
 library(Seurat)
 library(Signac)
