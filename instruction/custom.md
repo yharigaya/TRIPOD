@@ -21,7 +21,7 @@ Also, note that `<path/to/seurat>` needs to be replaced with a path to
 a file containing a Seurat object processed from multiome data.
 An example file, which has been processed from the 10X Genomics mouse
 embryonic data, can be downloaded
-[here](https://www.dropbox.com/s/flzriz8m8uiaopn/e18.qc.rds?dl=0)
+[here](https://www.dropbox.com/s/flzriz8m8uiaopn/e18.qc.rds?dl=0).
 
 ```r
 library(tidyverse)
@@ -37,7 +37,7 @@ object <- <path/to/seurat> %>% readRDS()
 # get a motif object from the JASPAR database
 pfm.set <- getMatrixSet(
     x = JASPAR2020,
-	opts = list(species = 9606, all_versions = FALSE)
+    opts = list(species = 9606, all_versions = FALSE)
 )
 
 # construct a PFM of the Olig2 binding motif
@@ -67,9 +67,9 @@ pfm.set$PFM.Olig2 <- pfm.olig2
 # creates a motif matrix
 motif.matrix <- CreateMotifMatrix(
     features = granges(object),
-	pwm = pfm.set,
-	genome = "mm10",
-	use.counts = FALSE
+    pwm = pfm.set,
+    genome = "mm10",
+    use.counts = FALSE
 )
 
 # add the PFM set to a Seurat object
