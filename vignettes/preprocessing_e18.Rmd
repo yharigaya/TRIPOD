@@ -453,8 +453,8 @@ threshold number of single cells. The threshold is set to 20 cells.
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
 num.clusters <- optimizeResolution(
 	object = e18,
-	graph.name = "wsnn",
-	assay.name = "WNN",
+	graph.name = "SCT_snn",
+	assay.name = "SCT",
 	resolutions = seq(10, 35, 5),
 	min.num = 20
 )
@@ -465,7 +465,7 @@ Based on the above analysis, we select the resolution of 15.
 
 ```{r, eval = TRUE, message = FALSE, warning = FALSE}
 res <- 15
-e18 <- getClusters(object = e18, graph.name = "wsnn", algorithm = 3,
+e18 <- getClusters(object = e18, graph.name = "SCT_snn",
     	resolution = res, verbose = FALSE)
 ```
 
